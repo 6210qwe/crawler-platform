@@ -18,6 +18,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
+    // 仅保护真正需要登录的页面；练习题列表与详情无需拦截
     return <Navigate to="/login" replace />
   }
 

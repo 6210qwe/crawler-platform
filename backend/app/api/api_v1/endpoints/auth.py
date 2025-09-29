@@ -8,6 +8,8 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, User as UserSchema
 from app.services.user_service import UserService
+import logging
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -17,48 +19,70 @@ def register(
     db: Session = Depends(get_db)
 ):
     """用户注册"""
-    user_service = UserService(db)
-    
-    # 检查用户名是否已存在
-    if user_service.get_user_by_username(user_data.username):
-        raise HTTPException(
-            status_code=400,
-            detail="用户名已存在"
-        )
-    
-    # 检查邮箱是否已存在
-    if user_service.get_user_by_email(user_data.email):
-        raise HTTPException(
-            status_code=400,
-            detail="邮箱已存在"
-        )
-    
-    # 创建用户
-    user = user_service.create_user(user_data)
-    return user
+    try:
+        user_service = UserService(db)
+
+        # 检查用户名是否已存在
+        if user_service.get_user_by_username(user_data.username):
+            raise HTTPException(status_code=400, detail="用户名已存在")
+
+        # 检查邮箱是否已存在
+        if user_service.get_user_by_email(user_data.email):
+            raise HTTPException(status_code=400, detail="邮箱已存在")
+
+        # 创建用户
+        user = user_service.create_user(user_data)
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.getLogger("uvicorn.error").exception("Register failed: %s", e)
+        raise HTTPException(status_code=500, detail="服务器内部错误")
+
+class LoginPayload(BaseModel):
+    username: str
+    password: str
 
 @router.post("/login")
-def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+async def login(
+    request: Request,
     db: Session = Depends(get_db),
-    response: Response = None
+    response: Response = None,
 ):
-    """用户登录"""
+    """用户登录（同时兼容 x-www-form-urlencoded 与 application/json）"""
     user_service = UserService(db)
-    user = user_service.authenticate_user(form_data.username, form_data.password)
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="用户名或密码错误",
-        )
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = security.create_access_token(
-        subject=user.id, expires_delta=access_token_expires
-    )
 
-    # 设置 HttpOnly Cookie（本地测试 secure=False，生产需True并配合 HTTPS）
+    username = None
+    password = None
+
+    # 根据 Content-Type 解析 body
+    content_type = (request.headers.get("content-type") or "").lower()
+    try:
+        if content_type.startswith("application/x-www-form-urlencoded") or content_type.startswith("multipart/form-data"):
+            form = await request.form()
+            username = form.get("username")
+            password = form.get("password")
+        elif content_type.startswith("application/json"):
+            data = await request.json()
+            payload = LoginPayload(**data)
+            username = payload.username
+            password = payload.password
+        else:
+            # 兼容无 Content-Type 的情况，尝试按 json 解析
+            data = await request.json()
+            payload = LoginPayload(**data)
+            username = payload.username
+            password = payload.password
+    except Exception:
+        raise HTTPException(status_code=422, detail="请求体格式错误")
+
+    user = user_service.authenticate_user(username, password)
+    if not user:
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = security.create_access_token(subject=user.id, expires_delta=access_token_expires)
+
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -66,9 +90,8 @@ def login(
         secure=False,
         samesite="lax",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/"
+        path="/",
     )
-
     return {"user": UserSchema.model_validate(user)}
 
 @router.get("/me", response_model=UserSchema)

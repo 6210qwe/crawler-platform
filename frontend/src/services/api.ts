@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+// 为了确保 Cookie 同源发送，强制通过 Vite 代理走同源路径
+const API_BASE_URL = '/api/v1'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,7 +11,13 @@ export const api = axios.create({
   withCredentials: true,
 })
 
-// 使用Cookie，不再附加Authorization头
+// 使用 Cookie，会话由服务端控制；不要在 401 时强制刷新，避免登录页循环刷新
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    return Promise.reject(error)
+  }
+)
 
 // 响应拦截器
 api.interceptors.response.use(

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode } from 'react'
 import { authService } from '../services/authService'
 
 interface User {
@@ -41,26 +41,11 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const userData = await authService.getCurrentUser()
-        setUser(userData)
-      } catch (error) {
-        // 未登录或Cookie无效
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    initAuth()
-  }, [])
+  const [loading, setLoading] = useState(false)
 
   const login = async (username: string, password: string) => {
-    const response = await authService.login(username, password)
-    setUser(response.user)
+    const res = await authService.login(username, password)
+    setUser(res.user)
   }
 
   const register = async (userData: RegisterData) => {

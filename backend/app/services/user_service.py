@@ -3,6 +3,7 @@ from typing import List
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.security import get_password_hash, verify_password
+from passlib.exc import PasswordTruncateError
 
 class UserService:
     def __init__(self, db: Session):
@@ -18,7 +19,12 @@ class UserService:
         return self.db.query(User).filter(User.email == email).first()
     
     def create_user(self, user_data: UserCreate) -> User:
-        hashed_password = get_password_hash(user_data.password)
+        try:
+            hashed_password = get_password_hash(user_data.password)
+        except PasswordTruncateError:
+            # 截断到 72 字节以兼容 bcrypt 限制
+            safe_password = user_data.password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
+            hashed_password = get_password_hash(safe_password)
         db_user = User(
             username=user_data.username,
             email=user_data.email,

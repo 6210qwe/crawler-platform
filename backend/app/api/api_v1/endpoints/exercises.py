@@ -22,7 +22,6 @@ def get_exercises(
     limit: int = 100,
     difficulty: str = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_dep)
 ):
     """获取练习题列表"""
     exercise_service = ExerciseService(db)
@@ -37,7 +36,6 @@ def get_exercises(
 def get_exercise(
     exercise_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_dep)
 ):
     """获取指定练习题"""
     exercise_service = ExerciseService(db)

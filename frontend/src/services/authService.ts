@@ -22,14 +22,12 @@ export interface RegisterData {
 
 export const authService = {
   async login(username: string, password: string): Promise<LoginResponse> {
-    const formData = new FormData()
-    formData.append('username', username)
-    formData.append('password', password)
-    
-    const response = await api.post('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+    const body = new URLSearchParams()
+    body.set('username', username)
+    body.set('password', password)
+
+    const response = await api.post('/auth/login', body.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     })
     return response.data
   },
