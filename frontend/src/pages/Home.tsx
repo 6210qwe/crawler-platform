@@ -40,7 +40,7 @@ const Home: React.FC = () => {
       {/* Hero Section */}
       <div className="text-center py-20">
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
-          爬虫逆向学习平台
+          爬虫逆向学习
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
           通过实战学习提升爬虫逆向技能，掌握JavaScript逆向、反爬虫技术等核心能力

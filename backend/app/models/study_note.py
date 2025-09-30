@@ -14,6 +14,7 @@ class StudyNote(Base):
     content_text = Column(Text, nullable=True)
     tags = Column(JSON, nullable=True)
     is_private = Column(Boolean, nullable=False, default=True, index=True)
+    view_count = Column(Integer, nullable=False, default=0)  # 阅读次数
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)

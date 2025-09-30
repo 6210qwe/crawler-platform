@@ -34,7 +34,12 @@ class StudyNoteService:
         return note
 
     def get(self, note_id: int, user_id: int) -> Optional[StudyNote]:
-        return self.db.query(StudyNote).filter(StudyNote.id == note_id, StudyNote.user_id == user_id).first()
+        note = self.db.query(StudyNote).filter(StudyNote.id == note_id, StudyNote.user_id == user_id).first()
+        if note:
+            # 增加阅读次数
+            note.view_count += 1
+            self.db.commit()
+        return note
 
     def list(self, user_id: int, skip: int = 0, limit: int = 20) -> List[StudyNote]:
         return (

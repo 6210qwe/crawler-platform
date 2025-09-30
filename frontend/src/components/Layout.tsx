@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
+import CrawlerFooter from './XifengliFooter'
 import { useAuth } from '../contexts/AuthContext'
 
 const Layout: React.FC = () => {
@@ -15,6 +16,7 @@ const Layout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+      <CrawlerFooter />
     </div>
   )
 }

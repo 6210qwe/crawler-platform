@@ -10,6 +10,7 @@ import ExerciseDetail from './pages/ExerciseDetail'
 import Profile from './pages/Profile'
 import Dashboard from './pages/Dashboard'
 import Notes from './pages/Notes'
+import NoteDetail from './pages/NoteDetail'
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             } 
           />
           <Route path="notes" element={<Notes />} />
+          <Route path="notes/:id" element={<NoteDetail />} />
         </Route>
       </Routes>
     </AuthProvider>

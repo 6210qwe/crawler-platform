@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, BookOpen, User, BarChart3, Settings } from 'lucide-react'
+import { BookOpen, User, BarChart3, Settings } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const Sidebar: React.FC = () => {
@@ -7,7 +7,6 @@ const Sidebar: React.FC = () => {
   const { user } = useAuth()
 
   const navigation = [
-    { name: '首页', href: '/', icon: Home },
     { name: '学习案例', href: '/exercises', icon: BookOpen },
     { name: '学习笔记', href: '/notes', icon: BookOpen },
     { name: '学习进度', href: '/leaderboard', icon: BarChart3 },

@@ -26,6 +26,7 @@ class StudyNoteUpdate(BaseModel):
 class StudyNoteInDBBase(StudyNoteBase):
     id: int
     user_id: int
+    view_count: int
     created_at: datetime
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None

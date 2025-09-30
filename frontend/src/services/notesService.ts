@@ -8,6 +8,7 @@ export interface StudyNote {
   content_text?: string
   tags?: string[]
   is_private: boolean
+  view_count: number
   created_at: string
   updated_at?: string
 }

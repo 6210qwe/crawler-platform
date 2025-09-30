@@ -1312,6 +1312,10 @@
             "type": "integer",
             "title": "User Id"
           },
+          "view_count": {
+            "type": "integer",
+            "title": "View Count"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -1348,6 +1352,7 @@
           "content_html",
           "id",
           "user_id",
+          "view_count",
           "created_at"
         ],
         "title": "StudyNote"
