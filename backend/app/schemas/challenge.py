@@ -8,17 +8,17 @@ class ChallengeBase(BaseModel):
 class ChallengeCreate(ChallengeBase):
     pass
 
-class ChallengeResponse(BaseModel):
+class ChallengeMetaResponse(BaseModel):
     id: int
     user_id: int
     exercise_id: int
-    numbers: List[List[int]]
     total_sum: int
     is_completed: bool
     completed_at: Optional[datetime] = None
     attempts: int
     best_time: Optional[int] = None
     score: Optional[int] = None
+    total_pages: int
 
     class Config:
         from_attributes = True

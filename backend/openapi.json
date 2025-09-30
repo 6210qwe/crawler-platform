@@ -829,7 +829,7 @@
           "挑战赛"
         ],
         "summary": "Get Challenge",
-        "description": "获取或创建挑战数据",
+        "description": "获取挑战元信息或单页数据。\n- 不带 page: 返回元信息（不含 numbers）\n- 带 page: 仍返回元信息（前端随后用 /page/{page_number} 或 ?page= 获取数据）\n兼容性：暂保持 /page/{page_number} 端点。",
         "operationId": "get_challenge_api_v1_challenges__exercise_id__get",
         "parameters": [
           {
@@ -840,6 +840,24 @@
               "type": "integer",
               "title": "Exercise Id"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 100,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
+            }
           }
         ],
         "responses": {
@@ -848,7 +866,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ChallengeResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ChallengeMetaResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ChallengePageResponse"
+                    }
+                  ],
+                  "title": "Response Get Challenge Api V1 Challenges  Exercise Id  Get"
                 }
               }
             }
@@ -1087,38 +1113,7 @@
   },
   "components": {
     "schemas": {
-      "ChallengePageResponse": {
-        "properties": {
-          "page_number": {
-            "type": "integer",
-            "title": "Page Number"
-          },
-          "numbers": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array",
-            "title": "Numbers"
-          },
-          "start_index": {
-            "type": "integer",
-            "title": "Start Index"
-          },
-          "end_index": {
-            "type": "integer",
-            "title": "End Index"
-          }
-        },
-        "type": "object",
-        "required": [
-          "page_number",
-          "numbers",
-          "start_index",
-          "end_index"
-        ],
-        "title": "ChallengePageResponse"
-      },
-      "ChallengeResponse": {
+      "ChallengeMetaResponse": {
         "properties": {
           "id": {
             "type": "integer",
@@ -1131,16 +1126,6 @@
           "exercise_id": {
             "type": "integer",
             "title": "Exercise Id"
-          },
-          "numbers": {
-            "items": {
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
-            },
-            "type": "array",
-            "title": "Numbers"
           },
           "total_sum": {
             "type": "integer",
@@ -1187,6 +1172,10 @@
               }
             ],
             "title": "Score"
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages"
           }
         },
         "type": "object",
@@ -1194,12 +1183,43 @@
           "id",
           "user_id",
           "exercise_id",
-          "numbers",
           "total_sum",
           "is_completed",
-          "attempts"
+          "attempts",
+          "total_pages"
         ],
-        "title": "ChallengeResponse"
+        "title": "ChallengeMetaResponse"
+      },
+      "ChallengePageResponse": {
+        "properties": {
+          "page_number": {
+            "type": "integer",
+            "title": "Page Number"
+          },
+          "numbers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Numbers"
+          },
+          "start_index": {
+            "type": "integer",
+            "title": "Start Index"
+          },
+          "end_index": {
+            "type": "integer",
+            "title": "End Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page_number",
+          "numbers",
+          "start_index",
+          "end_index"
+        ],
+        "title": "ChallengePageResponse"
       },
       "ChallengeSubmission": {
         "properties": {

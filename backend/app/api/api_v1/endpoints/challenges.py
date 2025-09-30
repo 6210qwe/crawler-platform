@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Union
 import json
 import random
 from datetime import datetime
@@ -9,7 +9,7 @@ from app.core.database import get_db
 from app.api.api_v1.endpoints.auth import get_current_user
 from app.models.user import User
 from app.models.challenge import Challenge, ChallengeSubmission
-from app.schemas.challenge import ChallengeCreate, ChallengeResponse, ChallengeSubmission as ChallengeSubmissionSchema, ChallengePageResponse
+from app.schemas.challenge import ChallengeCreate, ChallengeMetaResponse, ChallengeSubmission as ChallengeSubmissionSchema, ChallengePageResponse
 
 router = APIRouter()
 
@@ -29,13 +29,18 @@ def generate_challenge_numbers(user_id: int, exercise_id: int) -> tuple[List[Lis
     
     return numbers, total_sum
 
-@router.get("/{exercise_id}", response_model=ChallengeResponse)
+@router.get("/{exercise_id}", response_model=Union[ChallengeMetaResponse, ChallengePageResponse])
 async def get_challenge(
     exercise_id: int,
+    page: Optional[int] = Query(None, ge=1, le=100),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """获取或创建挑战数据"""
+    """获取挑战元信息或单页数据。
+    - 不带 page: 返回元信息（不含 numbers）
+    - 带 page: 仍返回元信息（前端随后用 /page/{page_number} 或 ?page= 获取数据）
+    兼容性：暂保持 /page/{page_number} 端点。
+    """
     # 查找现有挑战
     challenge = db.query(Challenge).filter(
         Challenge.user_id == current_user.id,
@@ -43,7 +48,7 @@ async def get_challenge(
     ).first()
     
     if not challenge:
-        # 创建新挑战
+        # 创建新挑战（一次性写入，后续仅做切片返回）
         numbers, total_sum = generate_challenge_numbers(current_user.id, exercise_id)
         
         challenge = Challenge(
@@ -55,22 +60,32 @@ async def get_challenge(
         db.add(challenge)
         db.commit()
         db.refresh(challenge)
-    else:
-        # 解析现有数据
+
+    total_pages = 100
+
+    # 如果携带 page 参数，则返回对应页的数据
+    if page is not None:
         numbers = json.loads(challenge.numbers_data)
-        total_sum = challenge.total_sum
-    
-    return ChallengeResponse(
+        page_numbers = numbers[page - 1]
+        return ChallengePageResponse(
+            page_number=page,
+            numbers=page_numbers,
+            start_index=(page - 1) * 10 + 1,
+            end_index=page * 10
+        )
+
+    # 默认仅返回元信息，避免回传 1000 条
+    return ChallengeMetaResponse(
         id=challenge.id,
         user_id=challenge.user_id,
         exercise_id=challenge.exercise_id,
-        numbers=numbers,
-        total_sum=total_sum,
+        total_sum=challenge.total_sum,
         is_completed=challenge.is_completed,
         completed_at=challenge.completed_at,
         attempts=challenge.attempts,
         best_time=challenge.best_time,
-        score=challenge.score
+        score=challenge.score,
+        total_pages=total_pages
     )
 
 @router.get("/{exercise_id}/page/{page_number}", response_model=ChallengePageResponse)

@@ -4,12 +4,13 @@ export interface ChallengeData {
   id: number
   userId: number
   exerciseId: number
-  numbers: number[][]
   totalSum: number
   isCompleted: boolean
   completedAt?: string
   attempts: number
   bestTime?: number
+  score?: number
+  totalPages: number
 }
 
 export interface ChallengeSubmission {
@@ -26,38 +27,27 @@ export interface ChallengePage {
 }
 
 // 生成用户特定的挑战数据
-export const generateChallengeData = (exerciseId: number, userId: number): ChallengeData => {
-  const numbers: number[][] = []
-  let totalSum = 0
-  
-  // 生成100页，每页10个数字
-  for (let page = 0; page < 100; page++) {
-    const pageNumbers: number[] = []
-    for (let i = 0; i < 10; i++) {
-      // 使用用户ID和题目ID作为种子，确保每个用户的数据不同
-      const seed = (userId * 1000 + exerciseId * 100 + page * 10 + i) % 200 + 1
-      pageNumbers.push(seed)
-      totalSum += seed
-    }
-    numbers.push(pageNumbers)
-  }
-  
-  return {
-    id: 0,
-    userId,
-    exerciseId,
-    numbers,
-    totalSum,
-    isCompleted: false,
-    attempts: 0
-  }
-}
+// 本地生成逻辑不再暴露给页面使用，保留需要时可开关
 
 // 获取挑战数据
 export const getChallengeData = async (exerciseId: number): Promise<ChallengeData> => {
   try {
     const response = await api.get(`/challenges/${exerciseId}`)
-    return response.data
+    const d = response.data
+    // 转换为 camelCase
+    const mapped: ChallengeData = {
+      id: d.id,
+      userId: d.user_id,
+      exerciseId: d.exercise_id,
+      totalSum: d.total_sum,
+      isCompleted: d.is_completed,
+      completedAt: d.completed_at ?? undefined,
+      attempts: d.attempts,
+      bestTime: d.best_time ?? undefined,
+      score: d.score ?? undefined,
+      totalPages: d.total_pages,
+    }
+    return mapped
   } catch (error) {
     console.error('Failed to fetch challenge data:', error)
     throw error
@@ -68,7 +58,14 @@ export const getChallengeData = async (exerciseId: number): Promise<ChallengeDat
 export const getChallengePage = async (exerciseId: number, pageNumber: number): Promise<ChallengePage> => {
   try {
     const response = await api.get(`/challenges/${exerciseId}/page/${pageNumber}`)
-    return response.data
+    const d = response.data
+    const mapped: ChallengePage = {
+      pageNumber: d.page_number,
+      numbers: d.numbers,
+      startIndex: d.start_index,
+      endIndex: d.end_index,
+    }
+    return mapped
   } catch (error) {
     console.error('Failed to fetch challenge page:', error)
     throw error

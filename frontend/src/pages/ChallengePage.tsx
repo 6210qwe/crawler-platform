@@ -45,14 +45,13 @@ const ChallengePage: React.FC = () => {
       
       setLoading(true)
       try {
+        // 先获取挑战基本信息（不包含数字数据）
         const data = await challengeService.getChallengeData(parseInt(id))
         setChallengeData(data)
-        setPageData({
-          pageNumber: 1,
-          numbers: data.numbers[0],
-          startIndex: 1,
-          endIndex: 10
-        })
+        
+        // 获取第一页数据
+        const firstPageData = await challengeService.getChallengePage(parseInt(id), 1)
+        setPageData(firstPageData)
         setIsTimerRunning(true)
       } catch (error) {
         console.error('Failed to fetch challenge data:', error)
@@ -83,19 +82,22 @@ const ChallengePage: React.FC = () => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  const handlePageChange = (page: number) => {
-    if (!challengeData) return
+  const handlePageChange = async (page: number) => {
+    if (!id) return
     
     setCurrentPage(page)
-    setPageData({
-      pageNumber: page,
-      numbers: challengeData.numbers[page - 1],
-      startIndex: (page - 1) * 10 + 1,
-      endIndex: page * 10
-    })
     setSelectedNumbers([])
     setUserAnswer('')
     setSubmitResult(null)
+    
+    try {
+      // 使用分页API获取指定页面的数据
+      const pageData = await challengeService.getChallengePage(parseInt(id), page)
+      setPageData(pageData)
+    } catch (error) {
+      console.error('Failed to fetch page data:', error)
+      setError('加载页面数据失败')
+    }
   }
 
   const handleNumberClick = (number: number) => {

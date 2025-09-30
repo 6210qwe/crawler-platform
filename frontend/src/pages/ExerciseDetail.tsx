@@ -13,7 +13,12 @@ const ExerciseDetail: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const [numbers, setNumbers] = useState<number[][]>([])
+  const [pageData, setPageData] = useState<{
+    pageNumber: number
+    numbers: number[]
+    startIndex: number
+    endIndex: number
+  } | null>(null)
   const [totalSum, setTotalSum] = useState(0)
   const [userAnswer, setUserAnswer] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -52,10 +57,13 @@ const ExerciseDetail: React.FC = () => {
         
         setExercise(foundExercise)
         
-        // 生成挑战数据
+        // 获取挑战基本信息
         const challengeData = await challengeService.getChallengeData(exerciseId)
-        setNumbers(challengeData.numbers)
         setTotalSum(challengeData.totalSum)
+        
+        // 获取第一页数据
+        const firstPageData = await challengeService.getChallengePage(exerciseId, 1)
+        setPageData(firstPageData)
         setIsTimerRunning(true)
       } catch (error) {
         console.error('Failed to fetch data:', error)
@@ -86,10 +94,20 @@ const ExerciseDetail: React.FC = () => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  const handlePageChange = (page: number) => {
-    if (page < 1 || page > 100) return
+  const handlePageChange = async (page: number) => {
+    if (page < 1 || page > 100 || !id) return
+    
     setCurrentPage(page)
     setSubmitResult(null)
+    
+    try {
+      // 使用分页API获取指定页面的数据
+      const pageData = await challengeService.getChallengePage(parseInt(id), page)
+      setPageData(pageData)
+    } catch (error) {
+      console.error('Failed to fetch page data:', error)
+      setError('加载页面数据失败')
+    }
   }
 
   const handleSubmit = async () => {
@@ -161,7 +179,7 @@ const ExerciseDetail: React.FC = () => {
     )
   }
 
-  if (!exercise || numbers.length === 0) {
+  if (!exercise || !pageData) {
     return (
       <div className="text-center py-12 text-gray-600">
         <AlertCircle className="h-12 w-12 mx-auto mb-4" />
@@ -176,7 +194,7 @@ const ExerciseDetail: React.FC = () => {
     )
   }
 
-  const currentPageNumbers = numbers[currentPage - 1] || []
+  const currentPageNumbers = pageData.numbers
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100">
@@ -231,7 +249,7 @@ const ExerciseDetail: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-red-200 p-8 mb-6">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              第 {currentPage} 页 - 数字 {(currentPage - 1) * 10 + 1} 到 {currentPage * 10}
+              第 {pageData.pageNumber} 页 - 数字 {pageData.startIndex} 到 {pageData.endIndex}
             </h2>
           </div>
           
