@@ -14,12 +14,13 @@ const difficultyConfig = {
   '地狱': { color: 'bg-purple-100 text-purple-800', points: 150 }
 }
 
-const PAGINATION_SIZE = 12
+const PAGINATION_SIZE = 9
 
 export default function Exercises() {
   const { loading } = useAuth()
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [stats, setStats] = useState<ExerciseStats | null>(null)
+  const [filteredTotal, setFilteredTotal] = useState<number | null>(null)
   const [completedIds, setCompletedIds] = useState<number[]>([])
   const [loadingExercises, setLoadingExercises] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,7 +34,7 @@ export default function Exercises() {
     const fetchInitialData = async () => {
       try {
         setLoadingExercises(true)
-        const [exercisesData, statsData, progress] = await Promise.all([
+        const [exercisesData, statsData, progress, count] = await Promise.all([
           exerciseService.getExercises({
             search: searchTerm || undefined,
             difficulty: difficultyFilter !== 'all' ? difficultyFilter : undefined,
@@ -42,14 +43,20 @@ export default function Exercises() {
             limit: PAGINATION_SIZE
           }),
           exerciseService.getStatistics(),
-          challengeService.getUserProgress()
+          challengeService.getUserProgress(),
+          exerciseService.countExercises({
+            search: searchTerm || undefined,
+            difficulty: difficultyFilter !== 'all' ? difficultyFilter : undefined,
+          })
         ])
         console.log('Fetched exercises:', exercisesData)
         console.log('Fetched stats:', statsData)
         console.log('Fetched progress:', progress)
+        console.log('Fetched filtered total:', count)
         setExercises(exercisesData || [])
         setStats(statsData)
         setCompletedIds(progress?.completedChallenges || [])
+        setFilteredTotal(count)
       } catch (error) {
         console.error('Failed to fetch exercises:', error)
         setError(error instanceof Error ? error.message : '获取数据失败')
@@ -71,15 +78,23 @@ export default function Exercises() {
     const fetchFilteredData = async () => {
       try {
         setLoadingExercises(true)
-        const exercisesData = await exerciseService.getExercises({
-          search: searchTerm || undefined,
-          difficulty: difficultyFilter !== 'all' ? difficultyFilter : undefined,
-          sort_by: sortBy,
-          skip: (currentPage - 1) * PAGINATION_SIZE,
-          limit: PAGINATION_SIZE
-        })
+        const [exercisesData, count] = await Promise.all([
+          exerciseService.getExercises({
+            search: searchTerm || undefined,
+            difficulty: difficultyFilter !== 'all' ? difficultyFilter : undefined,
+            sort_by: sortBy,
+            skip: (currentPage - 1) * PAGINATION_SIZE,
+            limit: PAGINATION_SIZE
+          }),
+          exerciseService.countExercises({
+            search: searchTerm || undefined,
+            difficulty: difficultyFilter !== 'all' ? difficultyFilter : undefined,
+          })
+        ])
         console.log('Fetched filtered exercises:', exercisesData)
+        console.log('Fetched filtered total:', count)
         setExercises(exercisesData || [])
+        setFilteredTotal(count)
       } catch (error) {
         console.error('Failed to fetch filtered exercises:', error)
         setError(error instanceof Error ? error.message : '获取筛选数据失败')
@@ -92,7 +107,7 @@ export default function Exercises() {
     fetchFilteredData()
   }, [searchTerm, difficultyFilter, sortBy, currentPage])
 
-  const totalPages = Math.ceil((stats?.total || 0) / PAGINATION_SIZE)
+  const totalPages = Math.ceil(((filteredTotal ?? stats?.total) || 0) / PAGINATION_SIZE)
   const startIndex = (currentPage - 1) * PAGINATION_SIZE
 
   const getDifficultyIcon = (difficulty: string) => {
@@ -299,7 +314,7 @@ export default function Exercises() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            显示 {startIndex + 1} 到 {Math.min(startIndex + PAGINATION_SIZE, stats?.total || 0)}，共 {stats?.total || 0} 条
+            显示 {startIndex + 1} 到 {Math.min(startIndex + PAGINATION_SIZE, (filteredTotal ?? stats?.total) || 0)}，共 {(filteredTotal ?? stats?.total) || 0} 条
           </div>
           <div className="flex items-center space-x-2">
             <button

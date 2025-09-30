@@ -26,6 +26,17 @@ async def list_exercises(
                               search=search, sort_by=sort_by)
     return exercises
 
+@router.get("/count")
+async def count_exercises(
+    difficulty: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """获取符合筛选条件的题目总数（用于分页）"""
+    service = ExerciseService(db)
+    total = service.get_count(difficulty=difficulty, search=search)
+    return {"total": total}
+
 @router.get("/{exercise_id}", response_model=Exercise)
 async def get_exercise_by_id(
     exercise_id: int,

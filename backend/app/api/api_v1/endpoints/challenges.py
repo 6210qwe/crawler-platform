@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional, Union
+from sqlalchemy import func
 import json
 import random
 from datetime import datetime
@@ -87,31 +88,110 @@ async def get_user_progress(
         "average_time": int(average_time)
     }
 
+def _honor_title(solved_count: int) -> str:
+    tier = solved_count // 3
+    if tier <= 0:
+        return "新手入门"
+    if tier == 1:
+        return "初探江湖"
+    if tier == 2:
+        return "小有成就"
+    if tier == 3:
+        return "登堂入室"
+    if tier == 4:
+        return "炉火纯青"
+    if tier == 5:
+        return "登峰造极"
+    return "传说宗师"
+
 @router.get("/leaderboard")
 async def get_leaderboard(
-    exercise_id: Optional[int] = None,
-    limit: int = 50,
+    sort_by: str = Query("score", regex="^(score|solved)$"),
+    limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db)
 ):
-    """获取挑战排行榜（放在可变路径前，避免被 /{exercise_id} 吃掉）"""
-    query = db.query(Challenge).filter(Challenge.is_completed == True)
-    
-    if exercise_id:
-        query = query.filter(Challenge.exercise_id == exercise_id)
-    
-    challenges = query.order_by(Challenge.score.desc(), Challenge.best_time.asc()).limit(limit).all()
-    
+    """获取全站用户聚合排行榜（按总分或解题数）。"""
+    q = (
+        db.query(
+            User.id.label("user_id"),
+            User.username,
+            User.full_name,
+            User.avatar_url,
+            func.coalesce(func.sum(Challenge.score), 0).label("total_score"),
+            func.count(Challenge.id).label("solved_count"),
+            func.max(Challenge.completed_at).label("last_submission_at"),
+        )
+        .join(Challenge, Challenge.user_id == User.id)
+        .filter(Challenge.is_completed == True)
+        .group_by(User.id)
+    )
+
+    if sort_by == "solved":
+        # 仅显示通过题数 > 1 的用户
+        q = q.having(func.count(Challenge.id) > 1)
+        q = q.order_by(func.count(Challenge.id).desc(), func.coalesce(func.sum(Challenge.score), 0).desc())
+    else:
+        # 仅显示积分 > 1 的用户
+        q = q.having(func.coalesce(func.sum(Challenge.score), 0) > 1)
+        q = q.order_by(func.coalesce(func.sum(Challenge.score), 0).desc(), func.count(Challenge.id).desc())
+
+    rows = q.limit(limit).all()
+
     leaderboard = []
-    for rank, challenge in enumerate(challenges, 1):
+    for r in rows:
         leaderboard.append({
-            "rank": rank,
-            "username": challenge.user.username,
-            "score": challenge.score or 0,
-            "completed_at": challenge.completed_at.isoformat() if challenge.completed_at else None,
-            "time_spent": challenge.best_time or 0
+            "user_id": r.user_id,
+            "username": r.username,
+            "full_name": r.full_name,
+            "avatar_url": r.avatar_url,
+            "total_score": int(r.total_score or 0),
+            "solved_count": int(r.solved_count or 0),
+            "last_submission_at": r.last_submission_at.isoformat() if r.last_submission_at else None,
+            "honor_title": _honor_title(int(r.solved_count or 0)),
         })
-    
+
     return leaderboard
+
+@router.get("/recent-completions")
+async def get_recent_completions(
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db)
+):
+    """最近通关记录，显示谁通过了哪一题。"""
+    rows = (
+        db.query(
+            Challenge.id.label("challenge_id"),
+            Challenge.completed_at,
+            Challenge.score,
+            User.id.label("user_id"),
+            User.username,
+            User.full_name,
+            User.avatar_url,
+            Exercise.id.label("exercise_id"),
+            Exercise.title.label("exercise_title"),
+        )
+        .join(User, User.id == Challenge.user_id)
+        .join(Exercise, Exercise.id == Challenge.exercise_id)
+        .filter(Challenge.is_completed == True)
+        .order_by(Challenge.completed_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
+            "challenge_id": r.challenge_id,
+            "completed_at": r.completed_at.isoformat() if r.completed_at else None,
+            "score": r.score or 0,
+            "user_id": r.user_id,
+            "username": r.username,
+            "full_name": r.full_name,
+            "avatar_url": r.avatar_url,
+            "exercise_id": r.exercise_id,
+            "exercise_title": r.exercise_title,
+        }
+        for r in rows
+    ]
 
 @router.get("/leaderboard/{exercise_id}")
 async def get_leaderboard_by_exercise(

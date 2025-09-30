@@ -365,6 +365,70 @@
         }
       }
     },
+    "/api/v1/exercises/count": {
+      "get": {
+        "tags": [
+          "题目管理"
+        ],
+        "summary": "Count Exercises",
+        "description": "获取符合筛选条件的题目总数（用于分页）",
+        "operationId": "count_exercises_api_v1_exercises_count_get",
+        "parameters": [
+          {
+            "name": "difficulty",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Difficulty"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/exercises/{exercise_id}": {
       "get": {
         "tags": [
@@ -875,6 +939,50 @@
             "schema": {
               "type": "integer",
               "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/challenges/recent-completions": {
+      "get": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Get Recent Completions",
+        "description": "最近通关记录，显示谁通过了哪一题。",
+        "operationId": "get_recent_completions_api_v1_challenges_recent_completions_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
               "title": "Limit"
             }
           }

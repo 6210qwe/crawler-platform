@@ -69,6 +69,20 @@ class ExerciseService {
     }
   }
 
+  // 获取符合筛选条件的总数（用于分页）
+  async countExercises(filters: Pick<ExerciseFilters, 'difficulty' | 'search'> = {}): Promise<number> {
+    try {
+      const params = new URLSearchParams()
+      if (filters.difficulty) params.append('difficulty', filters.difficulty)
+      if (filters.search) params.append('search', filters.search)
+      const response = await api.get(`/exercises/count?${params.toString()}`)
+      return response.data.total ?? 0
+    } catch (error) {
+      console.error('Failed to count exercises:', error)
+      throw error
+    }
+  }
+
   // 获取单个题目
   async getExercise(id: number): Promise<Exercise> {
     try {

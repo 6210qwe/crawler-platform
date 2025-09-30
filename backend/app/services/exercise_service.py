@@ -38,6 +38,21 @@ class ExerciseService:
         
         return query.offset(skip).limit(limit).all()
 
+    def get_count(self, difficulty: Optional[str] = None, search: Optional[str] = None) -> int:
+        """获取符合筛选条件的题目总数"""
+        query = self.db.query(Exercise).filter(Exercise.is_active == True)
+
+        if difficulty:
+            query = query.filter(Exercise.difficulty == difficulty)
+
+        if search:
+            query = query.filter(
+                Exercise.title.contains(search) |
+                Exercise.description.contains(search)
+            )
+
+        return query.count()
+
     def get_by_id(self, exercise_id: int) -> Optional[Exercise]:
         """根据ID获取题目"""
         exercise = self.db.query(Exercise).filter(Exercise.id == exercise_id).first()
