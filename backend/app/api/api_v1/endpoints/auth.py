@@ -123,3 +123,24 @@ def logout(response: Response):
     """清除登录Cookie"""
     response.delete_cookie("access_token", path="/")
     return {"message": "已退出登录"}
+
+
+def get_current_user_optional(request: Request, db: Session = Depends(get_db)):
+    """可选获取当前用户信息，未登录时返回None"""
+    from jose import jwt, JWTError
+
+    token = request.cookies.get("access_token")
+    if not token:
+        return None
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+    except JWTError:
+        return None
+
+    user_service = UserService(db)
+    user = user_service.get_user_by_id(int(user_id))
+    return user

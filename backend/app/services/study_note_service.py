@@ -40,7 +40,7 @@ class StudyNoteService:
         return (
             self.db.query(StudyNote)
             .filter(StudyNote.user_id == user_id, StudyNote.deleted_at.is_(None))
-            .order_by(StudyNote.updated_at.desc().nullslast(), StudyNote.created_at.desc())
+            .order_by(StudyNote.updated_at.desc(), StudyNote.created_at.desc())
             .offset(skip)
             .limit(limit)
             .all()
