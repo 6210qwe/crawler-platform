@@ -8,9 +8,11 @@ const Sidebar: React.FC = () => {
 
   const navigation = [
     { name: '首页', href: '/', icon: Home },
-    { name: '练习题', href: '/exercises', icon: BookOpen },
+    { name: '学习案例', href: '/exercises', icon: BookOpen },
+    { name: '学习笔记', href: '/notes', icon: BookOpen },
+    { name: '学习进度', href: '/leaderboard', icon: BarChart3 },
     { name: '个人资料', href: '/profile', icon: User },
-    { name: '仪表板', href: '/dashboard', icon: BarChart3 },
+    { name: '学习仪表板', href: '/dashboard', icon: BarChart3 },
   ]
 
   // 如果是管理员，添加管理功能

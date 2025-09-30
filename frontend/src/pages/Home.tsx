@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Code, Target, Trophy, Users, ArrowRight, Star } from 'lucide-react'
+import { Code, Target, Trophy, Users, ArrowRight } from 'lucide-react'
 
 const Home: React.FC = () => {
   const { user } = useAuth()
@@ -8,7 +8,7 @@ const Home: React.FC = () => {
   const features = [
     {
       icon: Target,
-      title: '实战练习',
+      title: '实战学习',
       description: '基于真实网站的爬虫逆向挑战，提升实战能力'
     },
     {
@@ -18,8 +18,8 @@ const Home: React.FC = () => {
     },
     {
       icon: Trophy,
-      title: '排行榜',
-      description: '与全球开发者竞技，展示你的技术实力'
+      title: '学习进度',
+      description: '跟踪学习进度，展示你的技术实力'
     },
     {
       icon: Users,
@@ -29,7 +29,7 @@ const Home: React.FC = () => {
   ]
 
   const stats = [
-    { label: '练习题', value: '100+' },
+    { label: '学习案例', value: '100+' },
     { label: '活跃用户', value: '1000+' },
     { label: '完成率', value: '85%' },
     { label: '满意度', value: '4.8/5' }
@@ -40,10 +40,10 @@ const Home: React.FC = () => {
       {/* Hero Section */}
       <div className="text-center py-20">
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
-          爬虫逆向练习题平台
+          爬虫逆向学习平台
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-          通过实战练习提升爬虫逆向技能，掌握JavaScript逆向、反爬虫技术等核心能力
+          通过实战学习提升爬虫逆向技能，掌握JavaScript逆向、反爬虫技术等核心能力
         </p>
         <div className="flex justify-center space-x-4">
           {user ? (
@@ -51,7 +51,7 @@ const Home: React.FC = () => {
               to="/exercises"
               className="btn btn-primary btn-lg flex items-center space-x-2"
             >
-              <span>开始练习</span>
+              <span>开始学习</span>
               <ArrowRight className="h-5 w-5" />
             </Link>
           ) : (
@@ -119,10 +119,10 @@ const Home: React.FC = () => {
       {/* CTA Section */}
       <div className="bg-primary-600 rounded-2xl p-12 text-center text-white mb-20">
         <h2 className="text-3xl font-bold mb-4">
-          准备好开始你的爬虫逆向之旅了吗？
+          准备好开始你的爬虫逆向学习之旅了吗？
         </h2>
         <p className="text-xl mb-8 opacity-90">
-          加入我们的社区，与全球开发者一起学习成长
+          加入我们的学习社区，与同行一起成长进步
         </p>
         {!user && (
           <Link

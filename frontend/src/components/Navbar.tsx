@@ -18,7 +18,7 @@ const Navbar: React.FC = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
               <Code className="h-8 w-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">爬虫逆向平台</span>
+              <span className="text-xl font-bold text-gray-900">爬虫逆向学习平台</span>
             </Link>
           </div>
 
@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
                   className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <Trophy className="h-4 w-4" />
-                  <span>练习题</span>
+                  <span>学习案例</span>
                 </Link>
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center space-x-2">

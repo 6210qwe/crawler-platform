@@ -3,7 +3,7 @@ from typing import List, Union
 import os
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "爬虫逆向练习题平台"
+    PROJECT_NAME: str = "爬虫逆向学习平台"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     

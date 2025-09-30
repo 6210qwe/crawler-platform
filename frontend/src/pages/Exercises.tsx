@@ -88,8 +88,8 @@ const Exercises: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">练习题</h1>
-        <p className="text-gray-600">通过实战练习提升你的爬虫逆向技能</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">学习案例</h1>
+        <p className="text-gray-600">通过实战案例学习爬虫逆向技术</p>
       </div>
 
       {/* 搜索和筛选 */}
@@ -100,7 +100,7 @@ const Exercises: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="搜索练习题..."
+                placeholder="搜索学习案例..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input pl-10"
@@ -125,7 +125,7 @@ const Exercises: React.FC = () => {
         </div>
       </div>
 
-      {/* 练习题列表 */}
+      {/* 学习案例列表 */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredExercises.map((exercise) => (
           <div key={exercise.id} className="card hover:shadow-lg transition-shadow">
@@ -162,7 +162,7 @@ const Exercises: React.FC = () => {
                   className="btn btn-primary btn-sm flex items-center space-x-1"
                 >
                   <Target className="h-4 w-4" />
-                  <span>开始练习</span>
+                  <span>开始学习</span>
                 </Link>
               </div>
             </div>
@@ -174,7 +174,7 @@ const Exercises: React.FC = () => {
         <div className="text-center py-12">
           <div className="text-gray-500 mb-4">
             <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>没有找到匹配的练习题</p>
+            <p>没有找到匹配的学习案例</p>
           </div>
         </div>
       )}

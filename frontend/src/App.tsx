@@ -9,6 +9,7 @@ import Exercises from './pages/Exercises'
 import ExerciseDetail from './pages/ExerciseDetail'
 import Profile from './pages/Profile'
 import Dashboard from './pages/Dashboard'
+import Notes from './pages/Notes'
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route path="notes" element={<Notes />} />
         </Route>
       </Routes>
     </AuthProvider>

@@ -9,7 +9,7 @@ import os
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="爬虫逆向练习题平台 API",
+    description="爬虫逆向学习平台 API",
     openapi_url="/openapi.json",
     docs_url="/swagger",
     redoc_url="/docs"
@@ -29,7 +29,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():
-    return {"message": "爬虫逆向练习题平台 API"}
+    return {"message": "爬虫逆向学习平台 API"}
 
 @app.get("/health")
 async def health_check():
