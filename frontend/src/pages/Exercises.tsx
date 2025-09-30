@@ -7,11 +7,41 @@ import * as challengeService from '@/services/challengeService'
 
 // 难度配置
 const difficultyConfig = {
-  '初级': { color: 'bg-green-100 text-green-800', points: 10 },
-  '中级': { color: 'bg-blue-100 text-blue-800', points: 35 },
-  '高级': { color: 'bg-orange-100 text-orange-800', points: 60 },
-  '困难': { color: 'bg-red-100 text-red-800', points: 100 },
-  '地狱': { color: 'bg-purple-100 text-purple-800', points: 150 }
+  '初级': {
+    // 银色（金属感）
+    badge: 'backdrop-blur bg-white/70 text-slate-800 ring-1 ring-white/40 shadow-sm',
+    iconBg: 'bg-gradient-to-br from-slate-400/25 to-slate-600/10 text-slate-700',
+    frame: 'bg-gradient-to-r from-slate-300/70 via-white to-slate-200/70',
+    points: 10,
+  },
+  '中级': {
+    // 钛灰（金属感偏冷）
+    badge: 'backdrop-blur bg-white/70 text-slate-800 ring-1 ring-white/40 shadow-sm',
+    iconBg: 'bg-gradient-to-br from-zinc-400/25 to-zinc-600/10 text-zinc-700',
+    frame: 'bg-gradient-to-r from-zinc-300/70 via-white to-zinc-200/70',
+    points: 35,
+  },
+  '高级': {
+    // 玫瑰金
+    badge: 'backdrop-blur bg-white/70 text-slate-800 ring-1 ring-white/40 shadow-sm',
+    iconBg: 'bg-gradient-to-br from-rose-400/25 to-amber-400/10 text-rose-600',
+    frame: 'bg-gradient-to-r from-rose-200/70 via-white to-amber-100/70',
+    points: 60,
+  },
+  '困难': {
+    // 黄金
+    badge: 'backdrop-blur bg-white/70 text-slate-800 ring-1 ring-white/40 shadow-sm',
+    iconBg: 'bg-gradient-to-br from-amber-500/25 to-yellow-500/10 text-amber-600',
+    frame: 'bg-gradient-to-r from-amber-200/70 via-white to-yellow-100/70',
+    points: 100,
+  },
+  '地狱': {
+    // 钛紫金（冷冽高阶）
+    badge: 'backdrop-blur bg-white/70 text-slate-800 ring-1 ring-white/40 shadow-sm',
+    iconBg: 'bg-gradient-to-br from-violet-500/25 to-indigo-500/10 text-violet-600',
+    frame: 'bg-gradient-to-r from-violet-200/70 via-white to-indigo-100/70',
+    points: 150,
+  },
 }
 
 const PAGINATION_SIZE = 9
@@ -127,8 +157,19 @@ export default function Exercises() {
     }
   }
 
-  const getDifficultyColor = (difficulty: string) => {
-    return difficultyConfig[difficulty as keyof typeof difficultyConfig]?.color || 'bg-gray-100 text-gray-800'
+  const getDifficultyBadge = (difficulty: string) => {
+    const cfg = difficultyConfig[difficulty as keyof typeof difficultyConfig]
+    return cfg?.badge || 'backdrop-blur bg-white/70 text-slate-800 ring-1 ring-white/40 shadow-sm'
+  }
+
+  const getDifficultyIconBg = (difficulty: string) => {
+    const cfg = difficultyConfig[difficulty as keyof typeof difficultyConfig]
+    return cfg?.iconBg || 'bg-gray-500/10 text-gray-600'
+  }
+
+  const getDifficultyFrame = (difficulty: string) => {
+    const cfg = difficultyConfig[difficulty as keyof typeof difficultyConfig] as any
+    return cfg?.frame || 'bg-gradient-to-r from-slate-200/60 via-white to-slate-200/60'
   }
 
   if (loadingExercises) {
@@ -264,9 +305,13 @@ export default function Exercises() {
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
                     <span className="text-sm font-medium text-gray-500">#{exercise.id}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getDifficultyColor(exercise.difficulty)}`}>
-                      {getDifficultyIcon(exercise.difficulty)}
-                      <span>{exercise.difficulty}</span>
+                    <span className={`group inline-flex rounded-full p-[1px] transition-all duration-200 ease-out ${getDifficultyFrame(exercise.difficulty)} hover:shadow-[0_0_18px_-6px_rgba(0,0,0,0.25)] hover:scale-[1.02]` }>
+                      <span className={`px-3 py-1.5 rounded-full text-[11px] font-medium inline-flex items-center gap-1.5 transition-all duration-200 ease-out ${getDifficultyBadge(exercise.difficulty)} hover:shadow-md` }>
+                        <span className={`inline-flex items-center justify-center h-4 w-4 rounded-full shadow-sm transition-transform duration-200 ${getDifficultyIconBg(exercise.difficulty)} group-hover:scale-110`}>
+                          {getDifficultyIcon(exercise.difficulty)}
+                        </span>
+                        <span className="tracking-wide">{exercise.difficulty}</span>
+                      </span>
                     </span>
                     {completedIds.includes(exercise.id) && (
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">已通关</span>

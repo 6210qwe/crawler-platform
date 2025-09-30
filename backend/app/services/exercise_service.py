@@ -33,6 +33,9 @@ class ExerciseService:
             query = query.order_by(desc(Exercise.points))
         elif sort_by == "popular":
             query = query.order_by(desc(Exercise.view_count))
+        elif sort_by == "solved":
+            # 按解决人数排序
+            query = query.order_by(desc(Exercise.success_count), asc(Exercise.id))
         else:
             query = query.order_by(asc(Exercise.sort_order), asc(Exercise.id))
         
