@@ -257,22 +257,40 @@ const ExerciseDetail: React.FC = () => {
               <ChevronLeft className="h-4 w-4" />
             </button>
             
-            {Array.from({ length: 100 }, (_, i) => {
-              const page = i + 1
-              return (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    currentPage === page
-                      ? 'bg-green-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
-                  }`}
-                >
-                  {page}
-                </button>
-              )
-            })}
+            {/* 显示页码逻辑 - 显示10个页码 */}
+            {(() => {
+              const pages = []
+              const totalPages = 100
+              const maxVisiblePages = 10
+              
+              // 计算显示的页码范围
+              let start = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+              let end = Math.min(totalPages, start + maxVisiblePages - 1)
+              
+              // 如果接近末尾，调整起始位置
+              if (end === totalPages) {
+                start = Math.max(1, end - maxVisiblePages + 1)
+              }
+              
+              // 显示页码按钮
+              for (let page = start; page <= end; page++) {
+                pages.push(
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-2 text-sm font-medium rounded-md ${
+                      currentPage === page
+                        ? 'bg-green-600 text-white'
+                        : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              }
+              
+              return pages
+            })()}
             
             <button
               onClick={() => handlePageChange(currentPage + 1)}
@@ -339,12 +357,6 @@ const ExerciseDetail: React.FC = () => {
           )}
         </div>
 
-        {/* 课程广告 */}
-        <div className="text-center mt-8">
-          <p className="text-lg font-bold text-red-600">
-            爬虫工具平台爬虫逆向进阶课——提升JS和APP逆向技术
-          </p>
-        </div>
       </div>
     </div>
   )

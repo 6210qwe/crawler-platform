@@ -16,6 +16,7 @@ parts/
 sdist/
 var/
 wheels/
+挑战/
 *.egg-info/
 .installed.cfg
 *.egg

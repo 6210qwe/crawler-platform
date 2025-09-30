@@ -85,7 +85,14 @@ export const submitChallenge = async (submission: ChallengeSubmission): Promise<
   completedAt?: string
 }> => {
   try {
-    const response = await api.post('/challenges/submit', submission)
+    // 转换字段名为后端期望的格式
+    const backendSubmission = {
+      exercise_id: submission.exerciseId,
+      answer: submission.answer,
+      time_spent: submission.timeSpent
+    }
+    
+    const response = await api.post('/challenges/submit', backendSubmission)
     return response.data
   } catch (error) {
     console.error('Failed to submit challenge:', error)
