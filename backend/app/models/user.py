@@ -19,5 +19,5 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # 关系
-    created_exercises = relationship("Exercise", back_populates="creator")
-    submissions = relationship("ExerciseSubmission", back_populates="user")
+    exercise_submissions = relationship("ExerciseSubmission", back_populates="user")
+    challenges = relationship("Challenge", back_populates="user")

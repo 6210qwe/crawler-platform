@@ -265,11 +265,11 @@
     "/api/v1/exercises/": {
       "get": {
         "tags": [
-          "练习题"
+          "题目管理"
         ],
-        "summary": "Get Exercises",
-        "description": "获取练习题列表",
-        "operationId": "get_exercises_api_v1_exercises__get",
+        "summary": "List Exercises",
+        "description": "获取题目列表",
+        "operationId": "list_exercises_api_v1_exercises__get",
         "parameters": [
           {
             "name": "skip",
@@ -277,6 +277,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
               "default": 0,
               "title": "Skip"
             }
@@ -287,6 +288,8 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
               "default": 100,
               "title": "Limit"
             }
@@ -296,8 +299,41 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Difficulty"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "sort_order",
+              "title": "Sort By"
             }
           }
         ],
@@ -311,47 +347,7 @@
                   "items": {
                     "$ref": "#/components/schemas/Exercise"
                   },
-                  "title": "Response Get Exercises Api V1 Exercises  Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "练习题"
-        ],
-        "summary": "Create Exercise",
-        "description": "创建新练习题",
-        "operationId": "create_exercise_api_v1_exercises__post",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExerciseCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Exercise"
+                  "title": "Response List Exercises Api V1 Exercises  Get"
                 }
               }
             }
@@ -372,11 +368,11 @@
     "/api/v1/exercises/{exercise_id}": {
       "get": {
         "tags": [
-          "练习题"
+          "题目管理"
         ],
-        "summary": "Get Exercise",
-        "description": "获取指定练习题",
-        "operationId": "get_exercise_api_v1_exercises__exercise_id__get",
+        "summary": "Get Exercise By Id",
+        "description": "获取单个题目详情",
+        "operationId": "get_exercise_by_id_api_v1_exercises__exercise_id__get",
         "parameters": [
           {
             "name": "exercise_id",
@@ -388,57 +384,6 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Exercise"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "练习题"
-        ],
-        "summary": "Update Exercise",
-        "description": "更新练习题",
-        "operationId": "update_exercise_api_v1_exercises__exercise_id__put",
-        "parameters": [
-          {
-            "name": "exercise_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Exercise Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExerciseUpdate"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -463,14 +408,34 @@
         }
       }
     },
+    "/api/v1/exercises/statistics/overview": {
+      "get": {
+        "tags": [
+          "题目管理"
+        ],
+        "summary": "Get Exercise Statistics",
+        "description": "获取题目统计信息",
+        "operationId": "get_exercise_statistics_api_v1_exercises_statistics_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/exercises/{exercise_id}/submit": {
       "post": {
         "tags": [
-          "练习题"
+          "题目管理"
         ],
-        "summary": "Submit Exercise",
-        "description": "提交练习题答案",
-        "operationId": "submit_exercise_api_v1_exercises__exercise_id__submit_post",
+        "summary": "Submit Exercise Answer",
+        "description": "提交题目答案",
+        "operationId": "submit_exercise_answer_api_v1_exercises__exercise_id__submit_post",
         "parameters": [
           {
             "name": "exercise_id",
@@ -516,47 +481,20 @@
         }
       }
     },
-    "/api/v1/exercises/{exercise_id}/submissions": {
+    "/api/v1/exercises/user/progress": {
       "get": {
         "tags": [
-          "练习题"
+          "题目管理"
         ],
-        "summary": "Get Exercise Submissions",
-        "description": "获取练习题的提交记录",
-        "operationId": "get_exercise_submissions_api_v1_exercises__exercise_id__submissions_get",
-        "parameters": [
-          {
-            "name": "exercise_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Exercise Id"
-            }
-          }
-        ],
+        "summary": "Get User Progress",
+        "description": "获取用户进度",
+        "operationId": "get_user_progress_api_v1_exercises_user_progress_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ExerciseSubmission"
-                  },
-                  "title": "Response Get Exercise Submissions Api V1 Exercises  Exercise Id  Submissions Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": {}
               }
             }
           }
@@ -885,6 +823,219 @@
         }
       }
     },
+    "/api/v1/challenges/{exercise_id}": {
+      "get": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Get Challenge",
+        "description": "获取或创建挑战数据",
+        "operationId": "get_challenge_api_v1_challenges__exercise_id__get",
+        "parameters": [
+          {
+            "name": "exercise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Exercise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/challenges/{exercise_id}/page/{page_number}": {
+      "get": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Get Challenge Page",
+        "description": "获取挑战页面数据",
+        "operationId": "get_challenge_page_api_v1_challenges__exercise_id__page__page_number__get",
+        "parameters": [
+          {
+            "name": "exercise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Exercise Id"
+            }
+          },
+          {
+            "name": "page_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Page Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengePageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/challenges/submit": {
+      "post": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Submit Challenge",
+        "description": "提交挑战答案",
+        "operationId": "submit_challenge_api_v1_challenges_submit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeSubmission"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/challenges/progress": {
+      "get": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Get User Progress",
+        "description": "获取用户挑战进度",
+        "operationId": "get_user_progress_api_v1_challenges_progress_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/challenges/leaderboard": {
+      "get": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Get Leaderboard",
+        "description": "获取挑战排行榜",
+        "operationId": "get_leaderboard_api_v1_challenges_leaderboard_get",
+        "parameters": [
+          {
+            "name": "exercise_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exercise Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "summary": "Root",
@@ -936,16 +1087,142 @@
   },
   "components": {
     "schemas": {
-      "DifficultyLevel": {
-        "type": "string",
-        "enum": [
-          "beginner",
-          "intermediate",
-          "advanced",
-          "hard",
-          "hell"
+      "ChallengePageResponse": {
+        "properties": {
+          "page_number": {
+            "type": "integer",
+            "title": "Page Number"
+          },
+          "numbers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Numbers"
+          },
+          "start_index": {
+            "type": "integer",
+            "title": "Start Index"
+          },
+          "end_index": {
+            "type": "integer",
+            "title": "End Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page_number",
+          "numbers",
+          "start_index",
+          "end_index"
         ],
-        "title": "DifficultyLevel"
+        "title": "ChallengePageResponse"
+      },
+      "ChallengeResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "exercise_id": {
+            "type": "integer",
+            "title": "Exercise Id"
+          },
+          "numbers": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Numbers"
+          },
+          "total_sum": {
+            "type": "integer",
+            "title": "Total Sum"
+          },
+          "is_completed": {
+            "type": "boolean",
+            "title": "Is Completed"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "best_time": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Time"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "exercise_id",
+          "numbers",
+          "total_sum",
+          "is_completed",
+          "attempts"
+        ],
+        "title": "ChallengeResponse"
+      },
+      "ChallengeSubmission": {
+        "properties": {
+          "exercise_id": {
+            "type": "integer",
+            "title": "Exercise Id"
+          },
+          "answer": {
+            "type": "integer",
+            "title": "Answer"
+          },
+          "time_spent": {
+            "type": "integer",
+            "title": "Time Spent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exercise_id",
+          "answer",
+          "time_spent"
+        ],
+        "title": "ChallengeSubmission"
       },
       "Exercise": {
         "properties": {
@@ -957,49 +1234,63 @@
             "type": "string",
             "title": "Description"
           },
-          "target_url": {
-            "type": "string",
-            "title": "Target Url"
-          },
           "difficulty": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DifficultyLevel"
-              }
-            ],
-            "default": "beginner"
+            "type": "string",
+            "title": "Difficulty"
+          },
+          "challenge_points": {
+            "type": "string",
+            "title": "Challenge Points"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "default": []
           },
           "points": {
             "type": "integer",
             "title": "Points",
             "default": 10
           },
-          "time_limit": {
-            "type": "integer",
-            "title": "Time Limit",
-            "default": 300
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
           },
-          "hints": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Hints"
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order",
+            "default": 0
           },
           "id": {
             "type": "integer",
             "title": "Id"
           },
-          "status": {
-            "$ref": "#/components/schemas/ExerciseStatus"
-          },
-          "created_by": {
+          "view_count": {
             "type": "integer",
-            "title": "Created By"
+            "title": "View Count"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "title": "Attempt Count"
+          },
+          "success_count": {
+            "type": "integer",
+            "title": "Success Count"
+          },
+          "avg_time": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Time"
           },
           "created_at": {
             "type": "string",
@@ -1023,47 +1314,19 @@
         "required": [
           "title",
           "description",
-          "target_url",
+          "difficulty",
+          "challenge_points",
           "id",
-          "status",
-          "created_by",
+          "view_count",
+          "attempt_count",
+          "success_count",
           "created_at"
         ],
         "title": "Exercise"
       },
-      "ExerciseCreate": {
+      "ExerciseSubmission": {
         "properties": {
-          "title": {
-            "type": "string",
-            "title": "Title"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description"
-          },
-          "target_url": {
-            "type": "string",
-            "title": "Target Url"
-          },
-          "difficulty": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DifficultyLevel"
-              }
-            ],
-            "default": "beginner"
-          },
-          "points": {
-            "type": "integer",
-            "title": "Points",
-            "default": 10
-          },
-          "time_limit": {
-            "type": "integer",
-            "title": "Time Limit",
-            "default": 300
-          },
-          "hints": {
+          "answer": {
             "anyOf": [
               {
                 "type": "string"
@@ -1072,49 +1335,44 @@
                 "type": "null"
               }
             ],
-            "title": "Hints"
-          }
-        },
-        "type": "object",
-        "required": [
-          "title",
-          "description",
-          "target_url"
-        ],
-        "title": "ExerciseCreate"
-      },
-      "ExerciseStatus": {
-        "type": "string",
-        "enum": [
-          "draft",
-          "published",
-          "archived"
-        ],
-        "title": "ExerciseStatus"
-      },
-      "ExerciseSubmission": {
-        "properties": {
-          "answer": {
-            "type": "string",
             "title": "Answer"
+          },
+          "time_spent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Spent"
           },
           "id": {
             "type": "integer",
             "title": "Id"
           },
-          "user_id": {
-            "type": "integer",
-            "title": "User Id"
-          },
           "exercise_id": {
             "type": "integer",
             "title": "Exercise Id"
           },
-          "status": {
-            "$ref": "#/components/schemas/SubmissionStatus"
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "is_correct": {
+            "type": "boolean",
+            "title": "Is Correct"
           },
           "score": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Score"
           },
           "submitted_at": {
@@ -1125,12 +1383,10 @@
         },
         "type": "object",
         "required": [
-          "answer",
           "id",
-          "user_id",
           "exercise_id",
-          "status",
-          "score",
+          "user_id",
+          "is_correct",
           "submitted_at"
         ],
         "title": "ExerciseSubmission"
@@ -1138,118 +1394,37 @@
       "ExerciseSubmissionCreate": {
         "properties": {
           "answer": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Answer"
+          },
+          "time_spent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Spent"
+          },
+          "exercise_id": {
+            "type": "integer",
+            "title": "Exercise Id"
           }
         },
         "type": "object",
         "required": [
-          "answer"
+          "exercise_id"
         ],
         "title": "ExerciseSubmissionCreate"
-      },
-      "ExerciseUpdate": {
-        "properties": {
-          "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "target_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Url"
-          },
-          "difficulty": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/DifficultyLevel"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "status": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ExerciseStatus"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "points": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Points"
-          },
-          "time_limit": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Time Limit"
-          },
-          "hints": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Hints"
-          },
-          "solution": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Solution"
-          }
-        },
-        "type": "object",
-        "title": "ExerciseUpdate"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1468,16 +1643,6 @@
         },
         "type": "object",
         "title": "StudyNoteUpdate"
-      },
-      "SubmissionStatus": {
-        "type": "string",
-        "enum": [
-          "pending",
-          "correct",
-          "incorrect",
-          "timeout"
-        ],
-        "title": "SubmissionStatus"
       },
       "User": {
         "properties": {

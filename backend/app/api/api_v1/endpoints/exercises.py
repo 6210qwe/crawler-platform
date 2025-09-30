@@ -25,7 +25,7 @@ def get_exercises(
 ):
     """获取练习题列表"""
     exercise_service = ExerciseService(db)
-    exercises = exercise_service.get_exercises(
+    exercises = exercise_service.get_all(
         skip=skip, 
         limit=limit, 
         difficulty=difficulty
@@ -39,7 +39,7 @@ def get_exercise(
 ):
     """获取指定练习题"""
     exercise_service = ExerciseService(db)
-    exercise = exercise_service.get_exercise_by_id(exercise_id)
+    exercise = exercise_service.get_by_id(exercise_id)
     if not exercise:
         raise HTTPException(
             status_code=404,
@@ -55,7 +55,7 @@ def create_exercise(
 ):
     """创建新练习题"""
     exercise_service = ExerciseService(db)
-    exercise = exercise_service.create_exercise(exercise_data, current_user.id)
+    exercise = exercise_service.create(exercise_data)
     return exercise
 
 @router.put("/{exercise_id}", response_model=ExerciseSchema)
@@ -67,21 +67,21 @@ def update_exercise(
 ):
     """更新练习题"""
     exercise_service = ExerciseService(db)
-    exercise = exercise_service.get_exercise_by_id(exercise_id)
+    exercise = exercise_service.get_by_id(exercise_id)
     if not exercise:
         raise HTTPException(
             status_code=404,
             detail="练习题不存在"
         )
     
-    # 只有创建者或管理员可以更新
-    if exercise.created_by != current_user.id and not current_user.is_superuser:
+    # 只有管理员可以更新
+    if not current_user.is_superuser:
         raise HTTPException(
             status_code=403,
             detail="没有权限修改此练习题"
         )
     
-    updated_exercise = exercise_service.update_exercise(exercise_id, exercise_data)
+    updated_exercise = exercise_service.update(exercise_id, exercise_data)
     return updated_exercise
 
 @router.post("/{exercise_id}/submit", response_model=ExerciseSubmissionSchema)
@@ -93,42 +93,36 @@ def submit_exercise(
 ):
     """提交练习题答案"""
     exercise_service = ExerciseService(db)
-    exercise = exercise_service.get_exercise_by_id(exercise_id)
+    exercise = exercise_service.get_by_id(exercise_id)
     if not exercise:
         raise HTTPException(
             status_code=404,
             detail="练习题不存在"
         )
     
-    submission = exercise_service.submit_exercise(
+    submission = exercise_service.submit_answer(
         exercise_id, 
         current_user.id, 
         submission_data.answer
     )
     return submission
 
-@router.get("/{exercise_id}/submissions", response_model=List[ExerciseSubmissionSchema])
-def get_exercise_submissions(
-    exercise_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_dep)
-):
-    """获取练习题的提交记录"""
-    exercise_service = ExerciseService(db)
-    exercise = exercise_service.get_exercise_by_id(exercise_id)
-    if not exercise:
-        raise HTTPException(
-            status_code=404,
-            detail="练习题不存在"
-        )
-    
-    # 只有创建者或管理员可以查看所有提交记录
-    if exercise.created_by != current_user.id and not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="没有权限查看此练习题的提交记录"
-        )
-    
-    submissions = exercise_service.get_exercise_submissions(exercise_id)
-    return submissions
+# 暂时注释掉，因为ExerciseService中还没有这个方法
+# @router.get("/{exercise_id}/submissions", response_model=List[ExerciseSubmissionSchema])
+# def get_exercise_submissions(
+#     exercise_id: int,
+#     db: Session = Depends(get_db),
+#     current_user: User = Depends(get_current_user_dep)
+# ):
+#     """获取练习题的提交记录"""
+#     exercise_service = ExerciseService(db)
+#     exercise = exercise_service.get_by_id(exercise_id)
+#     if not exercise:
+#         raise HTTPException(
+#             status_code=404,
+#             detail="练习题不存在"
+#         )
+#     
+#     submissions = exercise_service.get_exercise_submissions(exercise_id)
+#     return submissions
 

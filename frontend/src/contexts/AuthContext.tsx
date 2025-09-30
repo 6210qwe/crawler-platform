@@ -44,19 +44,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(false)
 
   const login = async (username: string, password: string) => {
-    const res = await authService.login(username, password)
-    setUser(res.user)
+    setLoading(true)
+    try {
+      const res = await authService.login(username, password)
+      setUser(res.user)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const register = async (userData: RegisterData) => {
-    const newUser = await authService.register(userData)
-    // 注册成功后自动登录
-    await login(userData.username, userData.password)
+    setLoading(true)
+    try {
+      const newUser = await authService.register(userData)
+      // 注册成功后自动登录
+      await login(userData.username, userData.password)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const logout = () => {
+    setLoading(true)
     authService.logout().finally(() => {
       setUser(null)
+      setLoading(false)
     })
   }
 

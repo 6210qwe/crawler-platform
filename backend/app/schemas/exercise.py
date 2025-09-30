@@ -1,16 +1,17 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, field_validator
+from typing import List, Optional
 from datetime import datetime
-from app.models.exercise import DifficultyLevel, ExerciseStatus, SubmissionStatus
+import json
 
 class ExerciseBase(BaseModel):
     title: str
     description: str
-    target_url: str
-    difficulty: DifficultyLevel = DifficultyLevel.BEGINNER
+    difficulty: str
+    challenge_points: str
+    tags: List[str] = []
     points: int = 10
-    time_limit: int = 300
-    hints: Optional[str] = None
+    is_active: bool = True
+    sort_order: int = 0
 
 class ExerciseCreate(ExerciseBase):
     pass
@@ -18,20 +19,31 @@ class ExerciseCreate(ExerciseBase):
 class ExerciseUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    target_url: Optional[str] = None
-    difficulty: Optional[DifficultyLevel] = None
-    status: Optional[ExerciseStatus] = None
+    difficulty: Optional[str] = None
+    challenge_points: Optional[str] = None
+    tags: Optional[List[str]] = None
     points: Optional[int] = None
-    time_limit: Optional[int] = None
-    hints: Optional[str] = None
-    solution: Optional[str] = None
+    is_active: Optional[bool] = None
+    sort_order: Optional[int] = None
 
 class ExerciseInDBBase(ExerciseBase):
     id: int
-    status: ExerciseStatus
-    created_by: int
+    view_count: int
+    attempt_count: int
+    success_count: int
+    avg_time: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    @field_validator('tags', mode='before')
+    @classmethod
+    def parse_tags(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return []
+        return v or []
 
     class Config:
         from_attributes = True
@@ -39,23 +51,24 @@ class ExerciseInDBBase(ExerciseBase):
 class Exercise(ExerciseInDBBase):
     pass
 
+class ExerciseWithStats(Exercise):
+    success_rate: float  # 成功率
+    difficulty_level: int  # 难度等级（1-5）
+
 class ExerciseSubmissionBase(BaseModel):
-    answer: str
+    answer: Optional[str] = None
+    time_spent: Optional[int] = None
 
 class ExerciseSubmissionCreate(ExerciseSubmissionBase):
-    pass
-
-class ExerciseSubmissionInDBBase(ExerciseSubmissionBase):
-    id: int
-    user_id: int
     exercise_id: int
-    status: SubmissionStatus
-    score: int
+
+class ExerciseSubmission(ExerciseSubmissionBase):
+    id: int
+    exercise_id: int
+    user_id: int
+    is_correct: bool
+    score: Optional[int] = None
     submitted_at: datetime
 
     class Config:
         from_attributes = True
-
-class ExerciseSubmission(ExerciseSubmissionInDBBase):
-    pass
-

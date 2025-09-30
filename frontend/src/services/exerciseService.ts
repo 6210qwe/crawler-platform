@@ -3,75 +3,118 @@ import { api } from './api'
 export interface Exercise {
   id: number
   title: string
+  difficulty: '初级' | '中级' | '高级' | '困难' | '地狱'
   description: string
-  target_url: string
-  difficulty: 'beginner' | 'intermediate' | 'advanced' | 'hard' | 'hell'
-  status: 'draft' | 'published' | 'archived'
+  challenge_points: string
+  tags: string[]
   points: number
-  time_limit: number
-  hints?: string
-  created_by: number
+  is_active: boolean
+  sort_order: number
+  view_count: number
+  attempt_count: number
+  success_count: number
+  avg_time?: number
   created_at: string
   updated_at?: string
 }
 
 export interface ExerciseSubmission {
   id: number
-  user_id: number
   exercise_id: number
-  answer: string
-  status: 'pending' | 'correct' | 'incorrect' | 'timeout'
-  score: number
+  user_id: number
+  answer?: string
+  is_correct: boolean
+  score?: number
+  time_spent?: number
   submitted_at: string
 }
 
-export interface CreateExerciseData {
-  title: string
-  description: string
-  target_url: string
-  difficulty: 'beginner' | 'intermediate' | 'advanced' | 'hard' | 'hell'
-  points: number
-  time_limit: number
-  hints?: string
+export interface ExerciseStats {
+  total: number
+  by_difficulty: {
+    [key: string]: number
+  }
 }
 
-export interface SubmitExerciseData {
-  answer: string
+export interface UserProgress {
+  total_attempts: number
+  completed_exercises: number
+  total_score: number
 }
 
-export const exerciseService = {
-  async getExercises(params?: {
-    skip?: number
-    limit?: number
-    difficulty?: string
-  }): Promise<Exercise[]> {
-    const response = await api.get('/exercises', { params })
-    return response.data
-  },
+export interface ExerciseFilters {
+  skip?: number
+  limit?: number
+  difficulty?: string
+  search?: string
+  sort_by?: string
+}
 
+class ExerciseService {
+  // 获取题目列表
+  async getExercises(filters: ExerciseFilters = {}): Promise<Exercise[]> {
+    try {
+      const params = new URLSearchParams()
+      if (filters.skip) params.append('skip', filters.skip.toString())
+      if (filters.limit) params.append('limit', filters.limit.toString())
+      if (filters.difficulty) params.append('difficulty', filters.difficulty)
+      if (filters.search) params.append('search', filters.search)
+      if (filters.sort_by) params.append('sort_by', filters.sort_by)
+
+      const response = await api.get(`/exercises/?${params.toString()}`)
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch exercises:', error)
+      throw error
+    }
+  }
+
+  // 获取单个题目
   async getExercise(id: number): Promise<Exercise> {
-    const response = await api.get(`/exercises/${id}`)
-    return response.data
-  },
+    try {
+      const response = await api.get(`/exercises/${id}`)
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch exercise:', error)
+      throw error
+    }
+  }
 
-  async createExercise(data: CreateExerciseData): Promise<Exercise> {
-    const response = await api.post('/exercises', data)
-    return response.data
-  },
+  // 获取题目统计
+  async getStatistics(): Promise<ExerciseStats> {
+    try {
+      const response = await api.get('/exercises/statistics/overview')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch statistics:', error)
+      throw error
+    }
+  }
 
-  async updateExercise(id: number, data: Partial<CreateExerciseData>): Promise<Exercise> {
-    const response = await api.put(`/exercises/${id}`, data)
-    return response.data
-  },
+  // 提交答案
+  async submitAnswer(exerciseId: number, answer: string, timeSpent?: number): Promise<ExerciseSubmission> {
+    try {
+      const response = await api.post(`/exercises/${exerciseId}/submit`, {
+        answer,
+        time_spent: timeSpent
+      })
+      return response.data
+    } catch (error) {
+      console.error('Failed to submit answer:', error)
+      throw error
+    }
+  }
 
-  async submitExercise(id: number, data: SubmitExerciseData): Promise<ExerciseSubmission> {
-    const response = await api.post(`/exercises/${id}/submit`, data)
-    return response.data
-  },
-
-  async getExerciseSubmissions(id: number): Promise<ExerciseSubmission[]> {
-    const response = await api.get(`/exercises/${id}/submissions`)
-    return response.data
-  },
+  // 获取用户进度
+  async getUserProgress(): Promise<UserProgress> {
+    try {
+      const response = await api.get('/exercises/user/progress')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch user progress:', error)
+      throw error
+    }
+  }
 }
 
+export const exerciseService = new ExerciseService()

@@ -7,10 +7,14 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Exercises from './pages/Exercises'
 import ExerciseDetail from './pages/ExerciseDetail'
+import ChallengePage from './pages/ChallengePage'
 import Profile from './pages/Profile'
 import Dashboard from './pages/Dashboard'
 import Notes from './pages/Notes'
 import NoteDetail from './pages/NoteDetail'
+import ExercisesTest from './pages/ExercisesTest'
+import SimpleTest from './pages/SimpleTest'
+import ExercisesFixed from './pages/ExercisesFixed'
 
 function App() {
   return (
@@ -21,7 +25,18 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="exercises" element={<Exercises />} />
+          <Route path="exercises-test" element={<ExercisesTest />} />
+          <Route path="simple-test" element={<SimpleTest />} />
+          <Route path="exercises-fixed" element={<ExercisesFixed />} />
           <Route path="exercises/:id" element={<ExerciseDetail />} />
+          <Route 
+            path="challenge/:id" 
+            element={
+              <ProtectedRoute>
+                <ChallengePage />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="profile" 
             element={
