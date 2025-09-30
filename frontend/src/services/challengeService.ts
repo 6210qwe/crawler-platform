@@ -106,7 +106,13 @@ export const getUserProgress = async (): Promise<{
 }> => {
   try {
     const response = await api.get('/challenges/progress')
-    return response.data
+    const d = response.data
+    return {
+      completedChallenges: d.completed_challenges || [],
+      totalScore: d.total_score || 0,
+      totalAttempts: d.total_attempts || 0,
+      averageTime: d.average_time || 0,
+    }
   } catch (error) {
     console.error('Failed to fetch user progress:', error)
     throw error

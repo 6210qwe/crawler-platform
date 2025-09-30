@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Play, Users, Star, Search, ChevronLeft, ChevronRight, Trophy, Target, Zap, Flame, Skull } from 'lucide-react'
 import { exerciseService, Exercise, ExerciseStats } from '@/services/exerciseService'
+import * as challengeService from '@/services/challengeService'
 
 // 难度配置
 const difficultyConfig = {
@@ -19,6 +20,7 @@ export default function Exercises() {
   const { loading } = useAuth()
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [stats, setStats] = useState<ExerciseStats | null>(null)
+  const [completedIds, setCompletedIds] = useState<number[]>([])
   const [loadingExercises, setLoadingExercises] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -31,7 +33,7 @@ export default function Exercises() {
     const fetchInitialData = async () => {
       try {
         setLoadingExercises(true)
-        const [exercisesData, statsData] = await Promise.all([
+        const [exercisesData, statsData, progress] = await Promise.all([
           exerciseService.getExercises({
             search: searchTerm || undefined,
             difficulty: difficultyFilter !== 'all' ? difficultyFilter : undefined,
@@ -39,12 +41,15 @@ export default function Exercises() {
             skip: (currentPage - 1) * PAGINATION_SIZE,
             limit: PAGINATION_SIZE
           }),
-          exerciseService.getStatistics()
+          exerciseService.getStatistics(),
+          challengeService.getUserProgress()
         ])
         console.log('Fetched exercises:', exercisesData)
         console.log('Fetched stats:', statsData)
+        console.log('Fetched progress:', progress)
         setExercises(exercisesData || [])
         setStats(statsData)
+        setCompletedIds(progress?.completedChallenges || [])
       } catch (error) {
         console.error('Failed to fetch exercises:', error)
         setError(error instanceof Error ? error.message : '获取数据失败')
@@ -165,7 +170,7 @@ export default function Exercises() {
           <div className="text-sm text-gray-500">总题目数</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
-          <div className="text-2xl font-bold text-green-600">{stats?.by_difficulty?.['已解决'] || 0}</div>
+          <div className="text-2xl font-bold text-green-600">{completedIds.length}</div>
           <div className="text-sm text-gray-500">已解决题目</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
@@ -248,6 +253,9 @@ export default function Exercises() {
                       {getDifficultyIcon(exercise.difficulty)}
                       <span>{exercise.difficulty}</span>
                     </span>
+                    {completedIds.includes(exercise.id) && (
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">已通关</span>
+                    )}
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                     {exercise.title}

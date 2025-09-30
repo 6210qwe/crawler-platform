@@ -29,7 +29,7 @@ const Login: React.FC = () => {
 
     try {
       await login(formData.username, formData.password)
-      navigate('/')
+      navigate('/exercises')
     } catch (err: any) {
       setError(err.response?.data?.detail || '登录失败，请检查用户名和密码')
     } finally {

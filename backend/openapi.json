@@ -823,6 +823,135 @@
         }
       }
     },
+    "/api/v1/challenges/progress": {
+      "get": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Get User Progress",
+        "description": "获取用户挑战进度",
+        "operationId": "get_user_progress_api_v1_challenges_progress_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/challenges/leaderboard": {
+      "get": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Get Leaderboard",
+        "description": "获取挑战排行榜",
+        "operationId": "get_leaderboard_api_v1_challenges_leaderboard_get",
+        "parameters": [
+          {
+            "name": "exercise_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exercise Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/challenges/leaderboard/{exercise_id}": {
+      "get": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Get Leaderboard By Exercise",
+        "description": "根据题目获取挑战排行榜（兼容前端路径）",
+        "operationId": "get_leaderboard_by_exercise_api_v1_challenges_leaderboard__exercise_id__get",
+        "parameters": [
+          {
+            "name": "exercise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Exercise Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/challenges/{exercise_id}": {
       "get": {
         "tags": [
@@ -962,84 +1091,6 @@
           },
           "required": true
         },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/challenges/progress": {
-      "get": {
-        "tags": [
-          "挑战赛"
-        ],
-        "summary": "Get User Progress",
-        "description": "获取用户挑战进度",
-        "operationId": "get_user_progress_api_v1_challenges_progress_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/challenges/leaderboard": {
-      "get": {
-        "tags": [
-          "挑战赛"
-        ],
-        "summary": "Get Leaderboard",
-        "description": "获取挑战排行榜",
-        "operationId": "get_leaderboard_api_v1_challenges_leaderboard_get",
-        "parameters": [
-          {
-            "name": "exercise_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Exercise Id"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "title": "Limit"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Successful Response",
