@@ -298,13 +298,15 @@ export default function Exercises() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {exercises.map((exercise) => (
+          {exercises.map((exercise, index) => {
+            const displayNumber = (currentPage - 1) * PAGINATION_SIZE + index + 1
+            return (
           <div key={exercise.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-sm font-medium text-gray-500">#{exercise.id}</span>
+                    <span className="text-sm font-medium text-gray-500">#{displayNumber.toString().padStart(2, '0')}</span>
                     <span className={`group inline-flex rounded-full p-[1px] transition-all duration-200 ease-out ${getDifficultyFrame(exercise.difficulty)} hover:shadow-[0_0_18px_-6px_rgba(0,0,0,0.25)] hover:scale-[1.02]` }>
                       <span className={`px-3 py-1.5 rounded-full text-[11px] font-medium inline-flex items-center gap-1.5 transition-all duration-200 ease-out ${getDifficultyBadge(exercise.difficulty)} hover:shadow-md` }>
                         <span className={`inline-flex items-center justify-center h-4 w-4 rounded-full shadow-sm transition-transform duration-200 ${getDifficultyIconBg(exercise.difficulty)} group-hover:scale-110`}>
@@ -351,7 +353,8 @@ export default function Exercises() {
               </div>
             </div>
           </div>
-        ))}
+          )
+          })}
         </div>
       )}
 

@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Target, Zap, Flame, Trophy, Skull, CheckCircle, XCircle, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { exercises, difficultyConfig } from '@/data/exercises'
 import * as challengeService from '@/services/challengeService'
+import type { ExerciseMod } from '@/exercise-mods/types'
 
 const ExerciseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -31,6 +32,8 @@ const ExerciseDetail: React.FC = () => {
   } | null>(null)
   const [timeSpent, setTimeSpent] = useState(0)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const [prepareParams, setPrepareParams] = useState<Record<string, any> | null>(null)
+  const [mod, setMod] = useState<ExerciseMod | null>(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -64,6 +67,21 @@ const ExerciseDetail: React.FC = () => {
         // 获取第一页数据
         const firstPageData = await challengeService.getChallengePage(exerciseId, 1)
         setPageData(firstPageData)
+
+        // 获取 per-exercise 前端模块与 prepare 参数
+        try {
+          const m: { default: ExerciseMod } = await import(`@/exercise-mods/${exerciseId}/mod`)
+          setMod(m.default)
+        } catch (e) {
+          // 未提供特定模块，则不影响主流程
+          setMod(null)
+        }
+        try {
+          const params = await challengeService.getPrepare(exerciseId)
+          setPrepareParams(params)
+        } catch (e) {
+          setPrepareParams(null)
+        }
         setIsTimerRunning(true)
       } catch (error) {
         console.error('Failed to fetch data:', error)
@@ -115,10 +133,26 @@ const ExerciseDetail: React.FC = () => {
 
     setIsSubmitting(true)
     try {
+      let extra = {}
+      if (mod && typeof mod.signRequest === 'function') {
+        const signed = await mod.signRequest({
+          answer: parseInt(userAnswer),
+          timeSpent,
+          prepareParams: prepareParams || undefined,
+        })
+        extra = {
+          version: signed.version,
+          payload: signed.payload,
+          sign: signed.sign,
+          timestamp: signed.timestamp,
+        }
+      }
+
       const result = await challengeService.submitChallenge({
         exerciseId: parseInt(id),
         answer: parseInt(userAnswer),
-        timeSpent
+        timeSpent,
+        ...(extra as any),
       })
       
       setSubmitResult(result)

@@ -295,6 +295,19 @@ async def get_challenge_page(
         end_index=page_number * 10
     )
 
+@router.get("/{exercise_id}/prepare")
+async def prepare_challenge(
+    exercise_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """返回本题所需的公开参数（nonce/seed/每日因子/版本等）"""
+    validator = get_validator_for_exercise(exercise_id)
+    if validator:
+        return validator.get_public_params(user=current_user, exercise_id=exercise_id)
+    # 默认返回空参数
+    return {"version": "1.0.0"}
+
 @router.post("/submit")
 async def submit_challenge(
     submission: ChallengeSubmissionSchema,
@@ -311,8 +324,20 @@ async def submit_challenge(
     if not challenge:
         raise HTTPException(status_code=404, detail="挑战不存在")
     
-    # 检查答案是否正确
+    # 通过校验器验证（如存在）
     is_correct = submission.answer == challenge.total_sum
+    validator = get_validator_for_exercise(submission.exercise_id)
+    if validator:
+        try:
+            public_params = {}
+            is_correct = validator.validate(
+                submission=submission,
+                user=current_user,
+                exercise_id=submission.exercise_id,
+                public_params=public_params,
+            )
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"校验失败: {str(e)}")
     
     # 记录提交
     submission_record = ChallengeSubmission(

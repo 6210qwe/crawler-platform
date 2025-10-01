@@ -1181,6 +1181,47 @@
         }
       }
     },
+    "/api/v1/challenges/{exercise_id}/prepare": {
+      "get": {
+        "tags": [
+          "挑战赛"
+        ],
+        "summary": "Prepare Challenge",
+        "description": "返回本题所需的公开参数（nonce/seed/每日因子/版本等）",
+        "operationId": "prepare_challenge_api_v1_challenges__exercise_id__prepare_get",
+        "parameters": [
+          {
+            "name": "exercise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Exercise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/challenges/submit": {
       "post": {
         "tags": [
@@ -1393,6 +1434,50 @@
           "time_spent": {
             "type": "integer",
             "title": "Time Spent"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "payload": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payload"
+          },
+          "sign": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sign"
+          },
+          "timestamp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timestamp"
           }
         },
         "type": "object",

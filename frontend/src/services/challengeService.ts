@@ -17,6 +17,10 @@ export interface ChallengeSubmission {
   exerciseId: number
   answer: number
   timeSpent: number
+  version?: string
+  payload?: Record<string, any>
+  sign?: string
+  timestamp?: number
 }
 
 export interface ChallengePage {
@@ -86,13 +90,28 @@ export const submitChallenge = async (submission: ChallengeSubmission): Promise<
     const backendSubmission = {
       exercise_id: submission.exerciseId,
       answer: submission.answer,
-      time_spent: submission.timeSpent
+      time_spent: submission.timeSpent,
+      version: submission.version,
+      payload: submission.payload,
+      sign: submission.sign,
+      timestamp: submission.timestamp
     }
     
     const response = await api.post('/challenges/submit', backendSubmission)
     return response.data
   } catch (error) {
     console.error('Failed to submit challenge:', error)
+    throw error
+  }
+}
+
+// 获取挑战公开参数（供每题模块使用）
+export const getPrepare = async (exerciseId: number): Promise<Record<string, any>> => {
+  try {
+    const response = await api.get(`/challenges/${exerciseId}/prepare`)
+    return response.data
+  } catch (error) {
+    console.error('Failed to fetch challenge prepare params:', error)
     throw error
   }
 }

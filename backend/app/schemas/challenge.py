@@ -33,6 +33,11 @@ class ChallengeSubmission(BaseModel):
     exercise_id: int
     answer: int
     time_spent: int
+    # 新增可选字段用于模块化校验
+    version: Optional[str] = None
+    payload: Optional[dict] = None
+    sign: Optional[str] = None
+    timestamp: Optional[int] = None
 
 class ChallengeSubmissionResponse(BaseModel):
     id: int
