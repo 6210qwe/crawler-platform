@@ -245,14 +245,14 @@ const ExerciseDetail: React.FC = () => {
         {/* 题目标题 */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <span className="text-sm font-medium text-red-600">#{exercise.id}</span>
+            <span className="text-sm font-medium text-red-600">#{exercise.sort_order || exercise.id}</span>
             <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2 ${getDifficultyColor(exercise.difficulty)}`}>
               {getDifficultyIcon(exercise.difficulty)}
               <span>{exercise.difficulty}</span>
             </span>
           </div>
           <h1 className="text-4xl font-bold text-yellow-400 mb-2">
-            任务{exercise.id}: {exercise.title}
+            任务{exercise.sort_order || exercise.id}: {exercise.title}
           </h1>
           <p className="text-lg text-red-600 mb-4">
             抓取这100页的数字，计算加和并提交结果，另外，祝大家2025年得偿所愿，心想事成❤

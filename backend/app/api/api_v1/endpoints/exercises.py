@@ -21,6 +21,8 @@ def get_exercises(
     skip: int = 0,
     limit: int = 100,
     difficulty: str = None,
+    search: str = None,
+    sort_by: str = "sort_order",
     db: Session = Depends(get_db),
 ):
     """获取练习题列表"""
@@ -28,18 +30,50 @@ def get_exercises(
     exercises = exercise_service.get_all(
         skip=skip, 
         limit=limit, 
-        difficulty=difficulty
+        difficulty=difficulty,
+        search=search,
+        sort_by=sort_by
     )
     return exercises
+
+@router.get("/count")
+def count_exercises(
+    difficulty: str = None,
+    search: str = None,
+    db: Session = Depends(get_db),
+):
+    """获取练习题总数"""
+    exercise_service = ExerciseService(db)
+    count = exercise_service.get_count(
+        difficulty=difficulty,
+        search=search
+    )
+    return {"total": count}
+
+@router.get("/statistics/overview")
+def get_statistics(
+    db: Session = Depends(get_db),
+):
+    """获取题目统计信息"""
+    exercise_service = ExerciseService(db)
+    stats = exercise_service.get_statistics()
+    return stats
 
 @router.get("/{exercise_id}", response_model=ExerciseSchema)
 def get_exercise(
     exercise_id: int,
     db: Session = Depends(get_db),
 ):
-    """获取指定练习题"""
+    """获取指定练习题（支持通过ID或sort_order查找）"""
     exercise_service = ExerciseService(db)
+    
+    # 首先尝试通过ID查找
     exercise = exercise_service.get_by_id(exercise_id)
+    
+    # 如果通过ID找不到，尝试通过sort_order查找
+    if not exercise:
+        exercise = exercise_service.get_by_sort_order(exercise_id)
+    
     if not exercise:
         raise HTTPException(
             status_code=404,

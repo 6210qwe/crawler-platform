@@ -12,8 +12,28 @@ from app.models.user import User
 from app.models.challenge import Challenge, ChallengeSubmission
 from app.models.exercise import Exercise
 from app.schemas.challenge import ChallengeCreate, ChallengeMetaResponse, ChallengeSubmission as ChallengeSubmissionSchema, ChallengePageResponse
+from app.services.exercise_service import ExerciseService
+from app.challenge_validators.registry import get_validator_for_exercise
 
 router = APIRouter()
+
+def resolve_exercise_id(exercise_id_or_sort_order: int, db: Session) -> int:
+    """解析exercise_id，支持通过ID或sort_order查找"""
+    # 首先尝试通过ID查找
+    exercise = db.query(Exercise).filter(Exercise.id == exercise_id_or_sort_order).first()
+    if exercise:
+        return exercise.id
+    
+    # 如果通过ID找不到，尝试通过sort_order查找
+    exercise = db.query(Exercise).filter(
+        Exercise.sort_order == exercise_id_or_sort_order,
+        Exercise.is_active == True
+    ).first()
+    if exercise:
+        return exercise.id
+    
+    # 如果都找不到，返回原始值（让后续的错误处理来处理）
+    return exercise_id_or_sort_order
 
 def generate_challenge_numbers(user_id: int, exercise_id: int) -> tuple[List[List[int]], int]:
     """生成用户特定的挑战数字"""
@@ -214,19 +234,22 @@ async def get_challenge(
     - 带 page: 仍返回元信息（前端随后用 /page/{page_number} 或 ?page= 获取数据）
     兼容性：暂保持 /page/{page_number} 端点。
     """
+    # 解析exercise_id（支持通过ID或sort_order查找）
+    actual_exercise_id = resolve_exercise_id(exercise_id, db)
+    
     # 查找现有挑战
     challenge = db.query(Challenge).filter(
         Challenge.user_id == current_user.id,
-        Challenge.exercise_id == exercise_id
+        Challenge.exercise_id == actual_exercise_id
     ).first()
     
     if not challenge:
         # 创建新挑战（一次性写入，后续仅做切片返回）
-        numbers, total_sum = generate_challenge_numbers(current_user.id, exercise_id)
+        numbers, total_sum = generate_challenge_numbers(current_user.id, actual_exercise_id)
         
         challenge = Challenge(
             user_id=current_user.id,
-            exercise_id=exercise_id,
+            exercise_id=actual_exercise_id,
             numbers_data=json.dumps(numbers),
             total_sum=total_sum
         )
@@ -276,10 +299,13 @@ async def get_challenge_page(
     if page_number < 1 or page_number > 100:
         raise HTTPException(status_code=400, detail="页面编号必须在1-100之间")
     
+    # 解析exercise_id（支持通过ID或sort_order查找）
+    actual_exercise_id = resolve_exercise_id(exercise_id, db)
+    
     # 查找挑战数据
     challenge = db.query(Challenge).filter(
         Challenge.user_id == current_user.id,
-        Challenge.exercise_id == exercise_id
+        Challenge.exercise_id == actual_exercise_id
     ).first()
     
     if not challenge:
@@ -302,9 +328,12 @@ async def prepare_challenge(
     db: Session = Depends(get_db)
 ):
     """返回本题所需的公开参数（nonce/seed/每日因子/版本等）"""
-    validator = get_validator_for_exercise(exercise_id)
+    # 解析exercise_id（支持通过ID或sort_order查找）
+    actual_exercise_id = resolve_exercise_id(exercise_id, db)
+    
+    validator = get_validator_for_exercise(actual_exercise_id)
     if validator:
-        return validator.get_public_params(user=current_user, exercise_id=exercise_id)
+        return validator.get_public_params(user=current_user, exercise_id=actual_exercise_id)
     # 默认返回空参数
     return {"version": "1.0.0"}
 
@@ -315,10 +344,13 @@ async def submit_challenge(
     db: Session = Depends(get_db)
 ):
     """提交挑战答案"""
+    # 解析exercise_id（支持通过ID或sort_order查找）
+    actual_exercise_id = resolve_exercise_id(submission.exercise_id, db)
+    
     # 查找挑战数据
     challenge = db.query(Challenge).filter(
         Challenge.user_id == current_user.id,
-        Challenge.exercise_id == submission.exercise_id
+        Challenge.exercise_id == actual_exercise_id
     ).first()
     
     if not challenge:
@@ -326,14 +358,14 @@ async def submit_challenge(
     
     # 通过校验器验证（如存在）
     is_correct = submission.answer == challenge.total_sum
-    validator = get_validator_for_exercise(submission.exercise_id)
+    validator = get_validator_for_exercise(actual_exercise_id)
     if validator:
         try:
             public_params = {}
             is_correct = validator.validate(
                 submission=submission,
                 user=current_user,
-                exercise_id=submission.exercise_id,
+                exercise_id=actual_exercise_id,
                 public_params=public_params,
             )
         except Exception as e:
@@ -343,7 +375,7 @@ async def submit_challenge(
     submission_record = ChallengeSubmission(
         challenge_id=challenge.id,
         user_id=current_user.id,
-        exercise_id=submission.exercise_id,
+        exercise_id=actual_exercise_id,
         answer=submission.answer,
         time_spent=submission.time_spent,
         is_correct=is_correct
@@ -363,7 +395,7 @@ async def submit_challenge(
         submission_record.score = challenge.score
 
         # 同步更新题目统计：首次通关才累计成功人数
-        exercise = db.query(Exercise).filter(Exercise.id == submission.exercise_id).first()
+        exercise = db.query(Exercise).filter(Exercise.id == actual_exercise_id).first()
         if exercise:
             exercise.success_count = (exercise.success_count or 0) + 1
             exercise.attempt_count = (exercise.attempt_count or 0) + 1

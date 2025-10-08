@@ -299,7 +299,7 @@ export default function Exercises() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {exercises.map((exercise, index) => {
-            const displayNumber = (currentPage - 1) * PAGINATION_SIZE + index + 1
+            const displayNumber = exercise.sort_order || ((currentPage - 1) * PAGINATION_SIZE + index + 1)
             return (
           <div key={exercise.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
             <div className="p-6">
@@ -344,7 +344,7 @@ export default function Exercises() {
                 </div>
               
                 <Link
-                  to={`/exercises/${exercise.id}`}
+                  to={`/exercises/${exercise.sort_order || exercise.id}`}
                   className="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
                 >
                   <Play className="h-4 w-4 mr-2" />

@@ -65,6 +65,18 @@ class ExerciseService:
             self.db.commit()
         return exercise
 
+    def get_by_sort_order(self, sort_order: int) -> Optional[Exercise]:
+        """根据sort_order获取题目"""
+        exercise = self.db.query(Exercise).filter(
+            Exercise.sort_order == sort_order,
+            Exercise.is_active == True
+        ).first()
+        if exercise:
+            # 增加访问次数
+            exercise.view_count += 1
+            self.db.commit()
+        return exercise
+
     def create(self, exercise_data: ExerciseCreate) -> Exercise:
         """创建新题目"""
         exercise = Exercise(
