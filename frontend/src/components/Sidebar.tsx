@@ -54,7 +54,7 @@ const Sidebar: React.FC = () => {
     { name: '学习案例', href: '/exercises', icon: Target },
     { name: '基础知识', href: '/knowledge', icon: GraduationCap },
     { name: '学习笔记', href: '/notes', icon: BookOpen },
-    { name: '学习进度', href: '/leaderboard', icon: BarChart3 },
+    { name: '排行榜', href: '/leaderboard', icon: Trophy },
     { name: '个人资料', href: '/profile', icon: User },
     { name: '学习仪表板', href: '/dashboard', icon: BarChart3 },
   ]
@@ -86,13 +86,6 @@ const Sidebar: React.FC = () => {
             )
           })}
 
-          <button
-            onClick={() => setIsLeaderboardOpen(true)}
-            className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-          >
-            <Trophy className="h-5 w-5 text-yellow-600" />
-            <span>排行榜</span>
-          </button>
         </nav>
       </div>
 

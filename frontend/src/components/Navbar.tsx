@@ -16,12 +16,12 @@ const Navbar: React.FC = () => {
   const navigationItems = [
     { name: '首页', href: '/' },
     { name: '爬虫工具', href: '/exercises' },
-    { name: '逆向分析', href: '/notes' },
-    { name: '数据采集', href: '/dashboard' },
-    { name: '反爬技术', href: '/profile' },
-    { name: '技术分享', href: '/leaderboard' },
+    { name: '逆向分析', href: '/reverse-analysis' },
+    { name: '数据采集', href: '/data-collection' },
+    { name: '反爬技术', href: '/anti-crawler' },
+    { name: '技术分享', href: '/tech-sharing' },
     { name: '学习笔记', href: '/notes' },
-    { name: '工具下载', href: '/notes' },
+    { name: '工具下载', href: '/tools-download' },
   ]
 
   return (
