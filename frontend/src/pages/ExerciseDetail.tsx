@@ -70,7 +70,7 @@ const ExerciseDetail: React.FC = () => {
 
         // 获取 per-exercise 前端模块与 prepare 参数
         try {
-          const m: { default: ExerciseMod } = await import(`@/exercise-mods/${exerciseId}/mod`)
+          const m: { default: ExerciseMod } = await import(`@/exercise-mods/${exerciseId}/mod.ts`)
           setMod(m.default)
         } catch (e) {
           // 未提供特定模块，则不影响主流程
@@ -279,25 +279,32 @@ const ExerciseDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* 数字显示区域 */}
-        <div className="bg-white rounded-lg shadow-sm border border-red-200 p-8 mb-6">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              第 {pageData.pageNumber} 页 - 数字 {pageData.startIndex} 到 {pageData.endIndex}
-            </h2>
-          </div>
-          
-          {/* 数字网格 */}
-          <div className="grid grid-cols-5 gap-4 mb-8">
-            {currentPageNumbers.map((number, index) => (
-              <div
-                key={index}
-                className="p-6 text-center rounded-lg border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors"
-              >
-                <div className="text-3xl font-bold text-blue-600">{number}</div>
-              </div>
-            ))}
-          </div>
+         {/* 数字显示区域 */}
+         <div className="bg-white rounded-lg shadow-sm border border-red-200 p-8 mb-6">
+           <div className="text-center mb-6">
+             <h2 className="text-2xl font-bold text-gray-900 mb-2">
+               第 {pageData.pageNumber} 页 - 数字 {pageData.startIndex} 到 {pageData.endIndex}
+             </h2>
+           </div>
+           
+           {/* 题目提示区域 */}
+           {mod && mod.renderHints && (
+             <div className="mb-6">
+               {mod.renderHints()}
+             </div>
+           )}
+           
+           {/* 数字网格 */}
+           <div className="grid grid-cols-5 gap-4 mb-8">
+             {currentPageNumbers.map((number, index) => (
+               <div
+                 key={index}
+                 className="p-6 text-center rounded-lg border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors"
+               >
+                 <div className="text-3xl font-bold text-blue-600">{number}</div>
+               </div>
+             ))}
+           </div>
 
           {/* 分页导航 */}
           <div className="flex items-center justify-center space-x-2">

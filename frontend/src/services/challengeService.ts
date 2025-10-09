@@ -61,7 +61,17 @@ export const getChallengeData = async (exerciseId: number): Promise<ChallengeDat
 // 获取挑战页面数据
 export const getChallengePage = async (exerciseId: number, pageNumber: number): Promise<ChallengePage> => {
   try {
-    const response = await api.get(`/challenges/${exerciseId}/page/${pageNumber}`)
+    let url = `/challenges/${exerciseId}/page/${pageNumber}`
+    
+    // 第一题需要添加MD5参数
+    if (exerciseId === 1) {
+      const timestamp = Math.floor(Date.now() / 1000)
+      const rawString = timestamp + 'spider'
+      const md5Hash = await import('crypto-js').then(crypto => crypto.default.MD5(rawString).toString())
+      url += `?r=${md5Hash}`
+    }
+    
+    const response = await api.get(url)
     const d = response.data
     const mapped: ChallengePage = {
       pageNumber: d.page_number,

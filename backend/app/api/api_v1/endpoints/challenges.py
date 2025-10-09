@@ -292,6 +292,7 @@ async def get_challenge(
 async def get_challenge_page(
     exercise_id: int,
     page_number: int,
+    r: Optional[str] = Query(None, description="MD5参数，第一题需要"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -301,6 +302,32 @@ async def get_challenge_page(
     
     # 解析exercise_id（支持通过ID或sort_order查找）
     actual_exercise_id = resolve_exercise_id(exercise_id, db)
+    
+    # 第一题需要MD5参数验证
+    if actual_exercise_id == 1:
+        if not r:
+            raise HTTPException(status_code=400, detail="第一题需要携带r参数")
+        
+        # 验证MD5参数
+        import hashlib
+        import time
+        
+        # 获取当前时间戳
+        current_timestamp = int(time.time())
+        
+        # 验证时间戳是否在合理范围内（5分钟内）
+        # 尝试当前时间戳和前5分钟的时间戳
+        md5_valid = False
+        for i in range(6):  # 检查当前时间和前5分钟
+            test_timestamp = current_timestamp - i * 60
+            test_raw_string = str(test_timestamp) + 'spider'
+            test_md5 = hashlib.md5(test_raw_string.encode('utf-8')).hexdigest()
+            if r == test_md5:
+                md5_valid = True
+                break
+        
+        if not md5_valid:
+            raise HTTPException(status_code=400, detail="MD5参数验证失败")
     
     # 查找挑战数据
     challenge = db.query(Challenge).filter(
@@ -413,59 +440,3 @@ async def submit_challenge(
         "completed_at": challenge.completed_at.isoformat() if challenge.is_completed else None
     }
 
-@router.get("/progress")
-async def get_user_progress(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """获取用户挑战进度"""
-    # 获取已完成的挑战
-    completed_challenges = db.query(Challenge).filter(
-        Challenge.user_id == current_user.id,
-        Challenge.is_completed == True
-    ).all()
-    
-    # 获取总积分
-    total_score = sum(challenge.score or 0 for challenge in completed_challenges)
-    
-    # 获取总尝试次数
-    total_attempts = db.query(ChallengeSubmission).filter(
-        ChallengeSubmission.user_id == current_user.id
-    ).count()
-    
-    # 获取平均用时
-    completed_times = [challenge.best_time for challenge in completed_challenges if challenge.best_time]
-    average_time = sum(completed_times) / len(completed_times) if completed_times else 0
-    
-    return {
-        "completed_challenges": [challenge.exercise_id for challenge in completed_challenges],
-        "total_score": total_score,
-        "total_attempts": total_attempts,
-        "average_time": int(average_time)
-    }
-
-@router.get("/leaderboard")
-async def get_leaderboard(
-    exercise_id: Optional[int] = None,
-    limit: int = 50,
-    db: Session = Depends(get_db)
-):
-    """获取挑战排行榜"""
-    query = db.query(Challenge).filter(Challenge.is_completed == True)
-    
-    if exercise_id:
-        query = query.filter(Challenge.exercise_id == exercise_id)
-    
-    challenges = query.order_by(Challenge.score.desc(), Challenge.best_time.asc()).limit(limit).all()
-    
-    leaderboard = []
-    for rank, challenge in enumerate(challenges, 1):
-        leaderboard.append({
-            "rank": rank,
-            "username": challenge.user.username,
-            "score": challenge.score or 0,
-            "completed_at": challenge.completed_at.isoformat() if challenge.completed_at else None,
-            "time_spent": challenge.best_time or 0
-        })
-    
-    return leaderboard

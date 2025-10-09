@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BookOpen, User, BarChart3, Settings, Trophy, Target, CheckCircle } from 'lucide-react'
+import { BookOpen, User, BarChart3, Settings, Trophy, Target, CheckCircle, GraduationCap } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useEffect, useState } from 'react'
 import { leaderboardService, LeaderboardRow } from '@/services/leaderboardService'
@@ -52,6 +52,7 @@ const Sidebar: React.FC = () => {
 
   const navigation = [
     { name: '学习案例', href: '/exercises', icon: Target },
+    { name: '基础知识', href: '/knowledge', icon: GraduationCap },
     { name: '学习笔记', href: '/notes', icon: BookOpen },
     { name: '学习进度', href: '/leaderboard', icon: BarChart3 },
     { name: '个人资料', href: '/profile', icon: User },

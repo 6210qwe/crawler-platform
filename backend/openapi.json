@@ -893,7 +893,7 @@
           "挑战赛"
         ],
         "summary": "Get User Progress",
-        "description": "获取用户挑战进度",
+        "description": "获取用户挑战进度（放在可变路径前，避免被 /{exercise_id} 吃掉）",
         "operationId": "get_user_progress_api_v1_challenges_progress_get",
         "responses": {
           "200": {
@@ -913,23 +913,18 @@
           "挑战赛"
         ],
         "summary": "Get Leaderboard",
-        "description": "获取挑战排行榜",
+        "description": "获取全站用户聚合排行榜（按总分或解题数）。",
         "operationId": "get_leaderboard_api_v1_challenges_leaderboard_get",
         "parameters": [
           {
-            "name": "exercise_id",
+            "name": "sort_by",
             "in": "query",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Exercise Id"
+              "type": "string",
+              "pattern": "^(score|solved)$",
+              "default": "score",
+              "title": "Sort By"
             }
           },
           {
@@ -938,7 +933,9 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "default": 50,
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 100,
               "title": "Limit"
             }
           }
@@ -1155,6 +1152,24 @@
               "type": "integer",
               "title": "Page Number"
             }
+          },
+          {
+            "name": "r",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "MD5参数，第一题需要",
+              "title": "R"
+            },
+            "description": "MD5参数，第一题需要"
           }
         ],
         "responses": {
@@ -1246,6 +1261,922 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/banks": {
+      "get": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Get Question Banks",
+        "description": "获取题库列表",
+        "operationId": "get_question_banks_api_v1_knowledge_banks_get",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuestionBank"
+                  },
+                  "title": "Response Get Question Banks Api V1 Knowledge Banks Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Create Question Bank",
+        "description": "创建题库",
+        "operationId": "create_question_bank_api_v1_knowledge_banks_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionBankCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionBank"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/banks/{bank_id}": {
+      "get": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Get Question Bank",
+        "description": "获取题库详情",
+        "operationId": "get_question_bank_api_v1_knowledge_banks__bank_id__get",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Bank Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionBank"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Update Question Bank",
+        "description": "更新题库",
+        "operationId": "update_question_bank_api_v1_knowledge_banks__bank_id__put",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Bank Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionBankUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionBank"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Delete Question Bank",
+        "description": "删除题库",
+        "operationId": "delete_question_bank_api_v1_knowledge_banks__bank_id__delete",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Bank Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/banks/{bank_id}/questions": {
+      "get": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Get Questions",
+        "description": "获取题目列表",
+        "operationId": "get_questions_api_v1_knowledge_banks__bank_id__questions_get",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Bank Id"
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Question"
+                  },
+                  "title": "Response Get Questions Api V1 Knowledge Banks  Bank Id  Questions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Create Question",
+        "description": "创建题目",
+        "operationId": "create_question_api_v1_knowledge_banks__bank_id__questions_post",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Bank Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Question"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/questions/{question_id}": {
+      "get": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Get Question",
+        "description": "获取题目详情",
+        "operationId": "get_question_api_v1_knowledge_questions__question_id__get",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Question"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Update Question",
+        "description": "更新题目",
+        "operationId": "update_question_api_v1_knowledge_questions__question_id__put",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Question"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Delete Question",
+        "description": "删除题目",
+        "operationId": "delete_question_api_v1_knowledge_questions__question_id__delete",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/exam/setup": {
+      "post": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Setup Exam",
+        "description": "设置考试",
+        "operationId": "setup_exam_api_v1_knowledge_exam_setup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamSetupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/practice/setup": {
+      "post": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Setup Practice",
+        "description": "设置刷题",
+        "operationId": "setup_practice_api_v1_knowledge_practice_setup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PracticeSetupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/sessions/{session_id}/questions": {
+      "get": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Get Session Questions",
+        "description": "获取会话题目",
+        "operationId": "get_session_questions_api_v1_knowledge_sessions__session_id__questions_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Question"
+                  },
+                  "title": "Response Get Session Questions Api V1 Knowledge Sessions  Session Id  Questions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/sessions/{session_id}/submit": {
+      "post": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Submit Answer",
+        "description": "提交答案",
+        "operationId": "submit_answer_api_v1_knowledge_sessions__session_id__submit_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserAnswerCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAnswer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/sessions/{session_id}/complete": {
+      "post": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Complete Exam",
+        "description": "完成考试",
+        "operationId": "complete_exam_api_v1_knowledge_sessions__session_id__complete_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/wrong-questions": {
+      "get": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Get Wrong Questions",
+        "description": "获取错题集",
+        "operationId": "get_wrong_questions_api_v1_knowledge_wrong_questions_get",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Bank Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WrongQuestionDetail"
+                  },
+                  "title": "Response Get Wrong Questions Api V1 Knowledge Wrong Questions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/wrong-questions/{wrong_question_id}/master": {
+      "post": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Master Question",
+        "description": "标记题目为已掌握",
+        "operationId": "master_question_api_v1_knowledge_wrong_questions__wrong_question_id__master_post",
+        "parameters": [
+          {
+            "name": "wrong_question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Wrong Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/wrong-questions/{wrong_question_id}": {
+      "delete": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Delete Wrong Question",
+        "description": "删除错题",
+        "operationId": "delete_wrong_question_api_v1_knowledge_wrong_questions__wrong_question_id__delete",
+        "parameters": [
+          {
+            "name": "wrong_question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Wrong Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/stats": {
+      "get": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Get Study Stats",
+        "description": "获取学习统计",
+        "operationId": "get_study_stats_api_v1_knowledge_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyStatsSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/stats/{bank_id}": {
+      "get": {
+        "tags": [
+          "基础知识"
+        ],
+        "summary": "Get Bank Stats",
+        "description": "获取特定题库的学习统计",
+        "operationId": "get_bank_stats_api_v1_knowledge_stats__bank_id__get",
+        "parameters": [
+          {
+            "name": "bank_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Bank Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyStats"
+                }
               }
             }
           },
@@ -1488,6 +2419,205 @@
         ],
         "title": "ChallengeSubmission"
       },
+      "ExamResult": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "total_questions": {
+            "type": "integer",
+            "title": "Total Questions"
+          },
+          "correct_questions": {
+            "type": "integer",
+            "title": "Correct Questions"
+          },
+          "total_score": {
+            "type": "integer",
+            "title": "Total Score"
+          },
+          "user_score": {
+            "type": "integer",
+            "title": "User Score"
+          },
+          "accuracy": {
+            "type": "number",
+            "title": "Accuracy"
+          },
+          "time_spent": {
+            "type": "integer",
+            "title": "Time Spent"
+          },
+          "is_completed": {
+            "type": "boolean",
+            "title": "Is Completed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "total_questions",
+          "correct_questions",
+          "total_score",
+          "user_score",
+          "accuracy",
+          "time_spent",
+          "is_completed"
+        ],
+        "title": "ExamResult"
+      },
+      "ExamSession": {
+        "properties": {
+          "bank_id": {
+            "type": "integer",
+            "title": "Bank Id",
+            "description": "题库ID"
+          },
+          "exam_type": {
+            "type": "string",
+            "title": "Exam Type",
+            "description": "考试类型"
+          },
+          "total_questions": {
+            "type": "integer",
+            "title": "Total Questions",
+            "description": "总题数"
+          },
+          "time_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Limit",
+            "description": "时间限制（秒）"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "answered_questions": {
+            "type": "integer",
+            "title": "Answered Questions"
+          },
+          "correct_questions": {
+            "type": "integer",
+            "title": "Correct Questions"
+          },
+          "total_score": {
+            "type": "integer",
+            "title": "Total Score"
+          },
+          "user_score": {
+            "type": "integer",
+            "title": "User Score"
+          },
+          "time_spent": {
+            "type": "integer",
+            "title": "Time Spent"
+          },
+          "is_completed": {
+            "type": "boolean",
+            "title": "Is Completed"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bank_id",
+          "exam_type",
+          "total_questions",
+          "id",
+          "user_id",
+          "session_id",
+          "answered_questions",
+          "correct_questions",
+          "total_score",
+          "user_score",
+          "time_spent",
+          "is_completed",
+          "started_at"
+        ],
+        "title": "ExamSession"
+      },
+      "ExamSetupRequest": {
+        "properties": {
+          "bank_id": {
+            "type": "integer",
+            "title": "Bank Id",
+            "description": "题库ID"
+          },
+          "total_questions": {
+            "type": "integer",
+            "title": "Total Questions",
+            "description": "题目数量"
+          },
+          "single_ratio": {
+            "type": "integer",
+            "title": "Single Ratio",
+            "description": "单选题比例",
+            "default": 40
+          },
+          "multi_ratio": {
+            "type": "integer",
+            "title": "Multi Ratio",
+            "description": "多选题比例",
+            "default": 30
+          },
+          "bool_ratio": {
+            "type": "integer",
+            "title": "Bool Ratio",
+            "description": "判断题比例",
+            "default": 30
+          },
+          "time_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Limit",
+            "description": "时间限制（分钟）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bank_id",
+          "total_questions"
+        ],
+        "title": "ExamSetupRequest"
+      },
       "Exercise": {
         "properties": {
           "title": {
@@ -1703,6 +2833,434 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "PracticeSetupRequest": {
+        "properties": {
+          "bank_id": {
+            "type": "integer",
+            "title": "Bank Id",
+            "description": "题库ID"
+          },
+          "order": {
+            "type": "string",
+            "title": "Order",
+            "description": "刷题顺序：顺序、逆序、随机",
+            "default": "顺序"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bank_id"
+        ],
+        "title": "PracticeSetupRequest"
+      },
+      "Question": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "题型"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question",
+            "description": "题目内容"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options",
+            "description": "选项"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer",
+            "description": "正确答案"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation",
+            "description": "解析"
+          },
+          "score": {
+            "type": "integer",
+            "title": "Score",
+            "description": "分值",
+            "default": 1
+          },
+          "difficulty": {
+            "type": "string",
+            "title": "Difficulty",
+            "description": "难度",
+            "default": "简单"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "bank_id": {
+            "type": "integer",
+            "title": "Bank Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "question",
+          "answer",
+          "id",
+          "bank_id",
+          "is_active",
+          "created_at"
+        ],
+        "title": "Question"
+      },
+      "QuestionBank": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "题库名称"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "题库描述"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "question_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Count",
+            "description": "题目数量"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "is_active",
+          "created_at"
+        ],
+        "title": "QuestionBank"
+      },
+      "QuestionBankCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "题库名称"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "题库描述"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "QuestionBankCreate"
+      },
+      "QuestionBankUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "题库名称"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "题库描述"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active",
+            "description": "是否激活"
+          }
+        },
+        "type": "object",
+        "title": "QuestionBankUpdate"
+      },
+      "QuestionCreate": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "题型"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question",
+            "description": "题目内容"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options",
+            "description": "选项"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer",
+            "description": "正确答案"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation",
+            "description": "解析"
+          },
+          "score": {
+            "type": "integer",
+            "title": "Score",
+            "description": "分值",
+            "default": 1
+          },
+          "difficulty": {
+            "type": "string",
+            "title": "Difficulty",
+            "description": "难度",
+            "default": "简单"
+          },
+          "bank_id": {
+            "type": "integer",
+            "title": "Bank Id",
+            "description": "题库ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "question",
+          "answer",
+          "bank_id"
+        ],
+        "title": "QuestionCreate"
+      },
+      "QuestionUpdate": {
+        "properties": {
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type",
+            "description": "题型"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question",
+            "description": "题目内容"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options",
+            "description": "选项"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer",
+            "description": "正确答案"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation",
+            "description": "解析"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score",
+            "description": "分值"
+          },
+          "difficulty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty",
+            "description": "难度"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active",
+            "description": "是否激活"
+          }
+        },
+        "type": "object",
+        "title": "QuestionUpdate"
+      },
       "StudyNote": {
         "properties": {
           "title": {
@@ -1908,6 +3466,145 @@
         "type": "object",
         "title": "StudyNoteUpdate"
       },
+      "StudyStats": {
+        "properties": {
+          "bank_id": {
+            "type": "integer",
+            "title": "Bank Id",
+            "description": "题库ID"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "total_questions": {
+            "type": "integer",
+            "title": "Total Questions"
+          },
+          "answered_questions": {
+            "type": "integer",
+            "title": "Answered Questions"
+          },
+          "correct_questions": {
+            "type": "integer",
+            "title": "Correct Questions"
+          },
+          "total_score": {
+            "type": "integer",
+            "title": "Total Score"
+          },
+          "study_time": {
+            "type": "integer",
+            "title": "Study Time"
+          },
+          "last_study_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Study At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bank_id",
+          "id",
+          "user_id",
+          "total_questions",
+          "answered_questions",
+          "correct_questions",
+          "total_score",
+          "study_time",
+          "created_at"
+        ],
+        "title": "StudyStats"
+      },
+      "StudyStatsSummary": {
+        "properties": {
+          "total_banks": {
+            "type": "integer",
+            "title": "Total Banks",
+            "description": "总题库数",
+            "default": 0
+          },
+          "total_questions": {
+            "type": "integer",
+            "title": "Total Questions",
+            "description": "总题数",
+            "default": 0
+          },
+          "answered_questions": {
+            "type": "integer",
+            "title": "Answered Questions",
+            "description": "已答题数",
+            "default": 0
+          },
+          "correct_questions": {
+            "type": "integer",
+            "title": "Correct Questions",
+            "description": "正确题数",
+            "default": 0
+          },
+          "total_score": {
+            "type": "integer",
+            "title": "Total Score",
+            "description": "总得分",
+            "default": 0
+          },
+          "study_time": {
+            "type": "integer",
+            "title": "Study Time",
+            "description": "学习时间（秒）",
+            "default": 0
+          },
+          "accuracy": {
+            "type": "number",
+            "title": "Accuracy",
+            "description": "正确率",
+            "default": 0.0
+          },
+          "wrong_questions_count": {
+            "type": "integer",
+            "title": "Wrong Questions Count",
+            "description": "错题数",
+            "default": 0
+          },
+          "mastered_questions_count": {
+            "type": "integer",
+            "title": "Mastered Questions Count",
+            "description": "已掌握题数",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "StudyStatsSummary"
+      },
       "User": {
         "properties": {
           "username": {
@@ -1965,6 +3662,107 @@
           "created_at"
         ],
         "title": "User"
+      },
+      "UserAnswer": {
+        "properties": {
+          "question_id": {
+            "type": "integer",
+            "title": "Question Id",
+            "description": "题目ID"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer",
+            "description": "用户答案"
+          },
+          "time_spent": {
+            "type": "integer",
+            "title": "Time Spent",
+            "description": "用时（秒）",
+            "default": 0
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "is_correct": {
+            "type": "boolean",
+            "title": "Is Correct"
+          },
+          "score": {
+            "type": "integer",
+            "title": "Score"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "answer",
+          "id",
+          "user_id",
+          "is_correct",
+          "score",
+          "created_at"
+        ],
+        "title": "UserAnswer"
+      },
+      "UserAnswerCreate": {
+        "properties": {
+          "question_id": {
+            "type": "integer",
+            "title": "Question Id",
+            "description": "题目ID"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer",
+            "description": "用户答案"
+          },
+          "time_spent": {
+            "type": "integer",
+            "title": "Time Spent",
+            "description": "用时（秒）",
+            "default": 0
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id",
+            "description": "答题会话ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "answer"
+        ],
+        "title": "UserAnswerCreate"
       },
       "UserCreate": {
         "properties": {
@@ -2100,6 +3898,79 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WrongQuestionDetail": {
+        "properties": {
+          "question_id": {
+            "type": "integer",
+            "title": "Question Id",
+            "description": "题目ID"
+          },
+          "user_answer": {
+            "type": "string",
+            "title": "User Answer",
+            "description": "用户错误答案"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "wrong_count": {
+            "type": "integer",
+            "title": "Wrong Count"
+          },
+          "last_wrong_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Wrong At"
+          },
+          "is_mastered": {
+            "type": "boolean",
+            "title": "Is Mastered"
+          },
+          "mastered_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mastered At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "question": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Question"
+              }
+            ],
+            "description": "题目详情"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "user_answer",
+          "id",
+          "user_id",
+          "wrong_count",
+          "last_wrong_at",
+          "is_mastered",
+          "created_at",
+          "question"
+        ],
+        "title": "WrongQuestionDetail"
       }
     }
   }

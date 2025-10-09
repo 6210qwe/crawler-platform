@@ -15,6 +15,8 @@ import NoteDetail from './pages/NoteDetail'
 import ExercisesTest from './pages/ExercisesTest'
 import SimpleTest from './pages/SimpleTest'
 import ExercisesFixed from './pages/ExercisesFixed'
+import KnowledgeBase from './pages/KnowledgeBase'
+import KnowledgeBankManager from './pages/KnowledgeBankManager'
 
 function App() {
   return (
@@ -55,6 +57,30 @@ function App() {
           />
           <Route path="notes" element={<Notes />} />
           <Route path="notes/:id" element={<NoteDetail />} />
+          <Route 
+            path="knowledge" 
+            element={
+              <ProtectedRoute>
+                <KnowledgeBase />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="knowledge/banks/new" 
+            element={
+              <ProtectedRoute>
+                <KnowledgeBankManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="knowledge/banks/:bankId/edit" 
+            element={
+              <ProtectedRoute>
+                <KnowledgeBankManager />
+              </ProtectedRoute>
+            } 
+          />
         </Route>
       </Routes>
     </AuthProvider>
